@@ -787,6 +787,258 @@
       stroke-linecap: round;
       stroke-linejoin: round;
     }
+
+    /* ════════════════════════════════════
+       TASK ROW EXTENDED
+    ════════════════════════════════════ */
+    .task-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .task-lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+    .task-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .task-assignee {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px;
+      font-weight: 800;
+      font-family: var(--fh);
+      color: #fff;
+      text-transform: uppercase;
+      flex-shrink: 0;
+      cursor: default;
+    }
+    .task-assignee.empty {
+      background: transparent;
+      border: 1.5px dashed rgba(255,255,255,.12);
+      color: var(--text-3);
+      font-size: 10px;
+    }
+    .task-duration {
+      font-size: 10px;
+      font-weight: 700;
+      font-family: var(--fh);
+      color: var(--text-2);
+      background: rgba(255,255,255,.05);
+      padding: 2px 7px;
+      border-radius: 100px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .task-deadline {
+      font-size: 10px;
+      color: var(--text-2);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .task-deadline.overdue { color: var(--rose); font-weight: 600; }
+    .task-menu {
+      width: 22px; height: 22px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      border-radius: 4px;
+      color: var(--text-3);
+      transition: all .15s;
+      flex-shrink: 0;
+      font-size: 14px;
+      font-weight: 700;
+      opacity: 0;
+    }
+    .task-row:hover .task-menu { opacity: 1; }
+    .task-menu:hover { background: rgba(255,255,255,.08); color: var(--text-1); }
+
+    /* ════════════════════════════════════
+       ADD TASK BUTTON
+    ════════════════════════════════════ */
+    .add-task-btn {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      margin-top: 6px;
+      border: 1px dashed var(--border);
+      border-radius: var(--r-sm);
+      background: transparent;
+      color: var(--text-3);
+      font-size: 12px;
+      font-family: var(--fb);
+      cursor: pointer;
+      transition: all .2s;
+      width: 100%;
+    }
+    .add-task-btn:hover {
+      border-color: var(--text-2);
+      color: var(--text-2);
+      background: rgba(255,255,255,.02);
+    }
+    .add-task-btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+    /* ════════════════════════════════════
+       DETAIL PANEL (slide-out)
+    ════════════════════════════════════ */
+    .detail-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 999;
+    }
+    .detail-overlay.open { display: block; }
+
+    .detail-panel {
+      position: fixed;
+      top: 0; right: -420px;
+      width: 400px;
+      max-width: 90vw;
+      height: 100vh;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border);
+      z-index: 1000;
+      overflow-y: auto;
+      transition: right .3s cubic-bezier(.4,0,.2,1);
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .detail-panel.open { right: 0; }
+
+    .dp-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .dp-close {
+      width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-2);
+      transition: all .15s;
+      background: none;
+      border: none;
+      font-size: 18px;
+    }
+    .dp-close:hover { background: rgba(255,255,255,.08); color: var(--text-1); }
+
+    .dp-title-input {
+      width: 100%;
+      background: none;
+      border: none;
+      border-bottom: 2px solid var(--border);
+      color: var(--text-1);
+      font-family: var(--fh);
+      font-size: 18px;
+      font-weight: 700;
+      padding: 8px 0;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .dp-title-input:focus { border-bottom-color: var(--gold); }
+
+    .dp-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .dp-label {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--fh);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-2);
+    }
+    .dp-input, .dp-select, .dp-textarea {
+      width: 100%;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border);
+      border-radius: var(--r-sm);
+      color: var(--text-1);
+      font-family: var(--fb);
+      font-size: 13px;
+      padding: 10px 12px;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .dp-input:focus, .dp-select:focus, .dp-textarea:focus {
+      border-color: var(--gold);
+    }
+    .dp-select { cursor: pointer; }
+    .dp-select option { background: var(--bg-surface); color: var(--text-1); }
+    .dp-textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
+    .dp-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .dp-delete-btn {
+      margin-top: auto;
+      padding: 10px 18px;
+      border: 1px solid rgba(244,63,94,.3);
+      border-radius: var(--r-sm);
+      background: rgba(244,63,94,.08);
+      color: var(--rose);
+      font-family: var(--fh);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      cursor: pointer;
+      transition: all .2s;
+      text-transform: uppercase;
+    }
+    .dp-delete-btn:hover {
+      background: rgba(244,63,94,.18);
+      border-color: var(--rose);
+    }
+
+    /* ════════════════════════════════════
+       TIMELINE CARD
+    ════════════════════════════════════ */
+    .tl-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 0;
+    }
+    .tl-label { font-size: 12px; color: var(--text-2); }
+    .tl-value { font-size: 13px; font-weight: 600; color: var(--text-1); font-family: var(--fh); }
+    .tl-divider { height: 1px; background: var(--border); margin: 10px 0; }
+    .tl-phase-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 0;
+    }
+    .tl-phase-name { font-size: 11px; color: var(--text-2); flex: 1; }
+    .tl-phase-days {
+      font-size: 11px;
+      font-weight: 700;
+      font-family: var(--fh);
+      color: var(--text-1);
+      min-width: 35px;
+      text-align: right;
+    }
+    .tl-phase-bar {
+      width: 60px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255,255,255,.06);
+      overflow: hidden;
+    }
+    .tl-phase-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width .3s;
+    }
   </style>
 </head>
 <body>
@@ -896,8 +1148,51 @@
         </div>
       </div>
     </div>
+    <div class="scard" id="timeline-card"></div>
   </aside>
 </main>
+
+<!-- Task Detail Panel -->
+<div class="detail-overlay" id="detail-overlay"></div>
+<div class="detail-panel" id="detail-panel">
+  <div class="dp-header">
+    <span class="dp-label" style="letter-spacing:0;text-transform:none;font-size:13px;">Task Details</span>
+    <button class="dp-close" id="dp-close">&times;</button>
+  </div>
+  <input class="dp-title-input" id="dp-title" placeholder="Task name" />
+  <div class="dp-field">
+    <label class="dp-label">Person in Charge</label>
+    <input class="dp-input" id="dp-assignee" placeholder="e.g. Mark, Designer" />
+  </div>
+  <div class="dp-field">
+    <label class="dp-label">Status</label>
+    <select class="dp-select" id="dp-status">
+      <option value="todo">To Do</option>
+      <option value="in-progress">In Progress</option>
+      <option value="done">Done</option>
+      <option value="blocked">Blocked</option>
+    </select>
+  </div>
+  <div class="dp-row">
+    <div class="dp-field">
+      <label class="dp-label">Start Date</label>
+      <input class="dp-input" type="date" id="dp-start" />
+    </div>
+    <div class="dp-field">
+      <label class="dp-label">Deadline</label>
+      <input class="dp-input" type="date" id="dp-due" />
+    </div>
+  </div>
+  <div class="dp-field">
+    <label class="dp-label">Duration (days)</label>
+    <input class="dp-input" type="number" id="dp-duration" min="1" placeholder="e.g. 5" />
+  </div>
+  <div class="dp-field">
+    <label class="dp-label">Notes</label>
+    <textarea class="dp-textarea" id="dp-note" placeholder="Add notes..."></textarea>
+  </div>
+  <button class="dp-delete-btn" id="dp-delete">Delete Task</button>
+</div>
 
 <footer>
   Birdy Project Dashboard · Line Collective × Birdy Travel Agency · <span id="fy"></span>
@@ -1155,6 +1450,53 @@ function getItem(id, def) {
   if (!ST[id]) ST[id] = { ...def };
   return ST[id];
 }
+
+/* Helpers for extended task data */
+function getTaskLabel(item) {
+  const s = ST[item.id];
+  return (s && s.label) || item.label;
+}
+
+function isDeleted(id) {
+  const del = ST['__deletedTasks'];
+  return Array.isArray(del) && del.includes(id);
+}
+
+function getCustomTasks(groupId) {
+  const ct = ST['__customTasks'];
+  if (!Array.isArray(ct)) return [];
+  return ct.filter(t => t.groupId === groupId);
+}
+
+function getGroupItems(g) {
+  // Default items (excluding deleted) + custom items for this group
+  const items = g.items.filter(i => !isDeleted(i.id));
+  const custom = getCustomTasks(g.id).filter(i => !isDeleted(i.id));
+  return [...items, ...custom];
+}
+
+const ASSIGNEE_COLORS = ['#F4A823','#38BDF8','#A78BFA','#34D399','#F43F5E','#FBBF24','#818CF8','#FB923C'];
+function assigneeColor(name) {
+  if (!name) return '';
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  return ASSIGNEE_COLORS[Math.abs(h) % ASSIGNEE_COLORS.length];
+}
+
+function fmtDate(d) {
+  if (!d) return '';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function isOverdue(dueDate) {
+  if (!dueDate) return false;
+  return new Date(dueDate + 'T23:59:59') < new Date();
+}
+
+/* Current detail panel state */
+let dpTaskId = null;
+let dpSecId = null;
 
 /* ═══════════════════════════════════
    CLOUD SYNC (Neon via /api/tasks)
@@ -1433,15 +1775,20 @@ function bindSectionEvents(sections) {
   secs.forEach(sec => {
     document.getElementById(`sh-${sec.id}`).addEventListener('click', () => toggleCollapse(sec.id));
     sec.groups.forEach(g => {
-      g.items.forEach(item => {
-        getItem(item.id, { checked: item.checked, status: item.status });
+      const items = getGroupItems(g);
+      items.forEach(item => {
+        getItem(item.id, { checked: item.checked || false, status: item.status || 'todo' });
         const row  = document.getElementById(`tr-${item.id}`);
         const pill = document.getElementById(`tp-${item.id}`);
+        const menu = document.getElementById(`tm-${item.id}`);
+        if (!row) return;
         row.addEventListener('click', (e) => {
           if (e.target === pill || pill.contains(e.target)) return;
+          if (menu && (e.target === menu || menu.contains(e.target))) return;
           toggleCheck(item.id, sec.id);
         });
-        pill.addEventListener('click', (e) => { e.stopPropagation(); cycleStatus(item.id, sec.id); });
+        if (pill) pill.addEventListener('click', (e) => { e.stopPropagation(); cycleStatus(item.id, sec.id); });
+        if (menu) menu.addEventListener('click', (e) => { e.stopPropagation(); openDetailPanel(item.id, sec.id); });
       });
     });
   });
@@ -1474,13 +1821,14 @@ function buildSection(sec) {
         <div class="sc-bar-fill" id="sbf-${sec.id}" style="width:${pct}%;background:${sec.color}"></div>
       </div>
       <div class="sc-body">
-        ${sec.groups.map(g => buildGroup(g)).join('')}
+        ${sec.groups.map(g => buildGroup(g, sec.id)).join('')}
       </div>
     </div>
   `;
 }
 
-function buildGroup(g) {
+function buildGroup(g, secId) {
+  const items = getGroupItems(g);
   return `
     <div class="tg" id="tg-${g.id}">
       <div class="tg-title">
@@ -1488,20 +1836,46 @@ function buildGroup(g) {
         ${g.badge ? `<span class="tg-badge">${g.badge}</span>` : ''}
       </div>
       <div class="task-list">
-        ${g.items.map(i => buildTaskRow(i)).join('')}
+        ${items.map(i => buildTaskRow(i)).join('')}
       </div>
+      <button class="add-task-btn" onclick="addTask('${g.id}','${secId}')">
+        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Add Task
+      </button>
     </div>
   `;
 }
 
 function buildTaskRow(item) {
-  const s   = getItem(item.id, { checked: item.checked, status: item.status });
+  const s   = getItem(item.id, { checked: item.checked || false, status: item.status || 'todo' });
   const cfg = STATUS_CFG[s.status] || STATUS_CFG.todo;
+  const label = getTaskLabel(item);
+  const assignee = s.assignee || '';
+  const duration = s.duration || 0;
+  const dueDate  = s.dueDate || '';
+  const overdue  = isOverdue(dueDate) && s.status !== 'done';
+
+  const assigneeHTML = assignee
+    ? `<div class="task-assignee" style="background:${assigneeColor(assignee)}" title="${assignee}">${assignee.charAt(0)}</div>`
+    : `<div class="task-assignee empty">+</div>`;
+  const durationHTML = duration > 0
+    ? `<span class="task-duration">${duration}d</span>`
+    : '';
+  const deadlineHTML = dueDate
+    ? `<span class="task-deadline${overdue ? ' overdue' : ''}">${fmtDate(dueDate)}</span>`
+    : '';
+
   return `
     <div class="task-row ${s.checked ? 'done' : ''}" id="tr-${item.id}">
       <div class="task-cb ${s.checked ? 'on' : ''}" id="tc-${item.id}"></div>
-      <span class="task-lbl">${item.label}</span>
-      <div class="task-pill ${cfg.cls}" id="tp-${item.id}">${cfg.label}</div>
+      <span class="task-lbl">${label}</span>
+      <div class="task-meta">
+        ${assigneeHTML}
+        ${durationHTML}
+        ${deadlineHTML}
+        <div class="task-pill ${cfg.cls}" id="tp-${item.id}">${cfg.label}</div>
+        <div class="task-menu" id="tm-${item.id}">⋮</div>
+      </div>
     </div>
   `;
 }
@@ -1568,23 +1942,29 @@ function fullRefresh() {
 ═══════════════════════════════════ */
 function secStats(sec) {
   let d=0, t=0;
-  sec.groups.forEach(g => g.items.forEach(item => {
-    const s = getItem(item.id, { checked: item.checked, status: item.status });
-    t++;
-    if (s.checked) d++;
-  }));
+  sec.groups.forEach(g => {
+    const items = getGroupItems(g);
+    items.forEach(item => {
+      const s = getItem(item.id, { checked: item.checked || false, status: item.status || 'todo' });
+      t++;
+      if (s.checked) d++;
+    });
+  });
   return { d, t };
 }
 
 function allStats() {
   let t=0,d=0,ip=0,bl=0;
-  SECTIONS.forEach(sec => sec.groups.forEach(g => g.items.forEach(item => {
-    const s = getItem(item.id, { checked: item.checked, status: item.status });
-    t++;
-    if (s.checked)                d++;
-    if (s.status==='in-progress') ip++;
-    if (s.status==='blocked')     bl++;
-  })));
+  SECTIONS.forEach(sec => sec.groups.forEach(g => {
+    const items = getGroupItems(g);
+    items.forEach(item => {
+      const s = getItem(item.id, { checked: item.checked || false, status: item.status || 'todo' });
+      t++;
+      if (s.checked)                d++;
+      if (s.status==='in-progress') ip++;
+      if (s.status==='blocked')     bl++;
+    });
+  }));
   return { t,d,ip,bl };
 }
 
@@ -1661,7 +2041,8 @@ function refreshSidebar() {
     chart.data.datasets[0].data = [pct, Math.max(0, 100-pct)];
     chart.update();
   }
-  renderPhaseCard(); // keep phase card in sync with task changes
+  renderPhaseCard();
+  renderTimeline();
 }
 
 /* ═══════════════════════════════════
@@ -1684,6 +2065,314 @@ function updateTimestamp() {
 }
 
 /* ═══════════════════════════════════
+   DETAIL PANEL & TASK MANAGEMENT
+   ═══════════════════════════════════ */
+function openDetailPanel(taskId, secId) {
+  dpTaskId = taskId;
+  dpSecId = secId;
+
+  // Find task label
+  let defaultLabel = 'New Task';
+  // Search default sections
+  for (const sec of SECTIONS) {
+    for (const g of sec.groups) {
+      const found = g.items.find(item => item.id === taskId);
+      if (found) {
+        defaultLabel = found.label;
+        break;
+      }
+    }
+  }
+
+  const s = getItem(taskId, { checked: false, status: 'todo' });
+  const label = s.label || defaultLabel;
+
+  document.getElementById('dp-title').value = label;
+  document.getElementById('dp-assignee').value = s.assignee || '';
+  document.getElementById('dp-status').value = s.status || 'todo';
+  document.getElementById('dp-start').value = s.startDate || '';
+  document.getElementById('dp-due').value = s.dueDate || '';
+  document.getElementById('dp-duration').value = s.duration || '';
+  document.getElementById('dp-note').value = s.note || '';
+
+  document.getElementById('detail-overlay').classList.add('open');
+  document.getElementById('detail-panel').classList.add('open');
+}
+
+function closeDetailPanel() {
+  document.getElementById('detail-overlay').classList.remove('open');
+  document.getElementById('detail-panel').classList.remove('open');
+  dpTaskId = null;
+  dpSecId = null;
+}
+
+function bindDetailPanel() {
+  const overlay = document.getElementById('detail-overlay');
+  const closeBtn = document.getElementById('dp-close');
+  const deleteBtn = document.getElementById('dp-delete');
+
+  overlay.addEventListener('click', closeDetailPanel);
+  closeBtn.addEventListener('click', closeDetailPanel);
+
+  deleteBtn.addEventListener('click', () => {
+    if (dpTaskId) {
+      deleteTask(dpTaskId, dpSecId);
+    }
+  });
+
+  // Autosave on input/change
+  const inputs = ['dp-title', 'dp-assignee', 'dp-status', 'dp-start', 'dp-due', 'dp-duration', 'dp-note'];
+  inputs.forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener('change', () => savePanelData());
+    el.addEventListener('input', () => savePanelData());
+  });
+}
+
+function savePanelData() {
+  if (!dpTaskId) return;
+
+  const s = getItem(dpTaskId, {});
+  
+  const titleVal = document.getElementById('dp-title').value.trim();
+  const statusVal = document.getElementById('dp-status').value;
+  const assigneeVal = document.getElementById('dp-assignee').value.trim();
+  const startVal = document.getElementById('dp-start').value;
+  const dueVal = document.getElementById('dp-due').value;
+  const durVal = parseInt(document.getElementById('dp-duration').value);
+  const noteVal = document.getElementById('dp-note').value.trim();
+
+  s.label = titleVal || 'Unnamed Task';
+  s.status = statusVal;
+  s.checked = (statusVal === 'done');
+  s.assignee = assigneeVal;
+  s.startDate = startVal;
+  s.dueDate = dueVal;
+  s.duration = isNaN(durVal) ? 0 : durVal;
+  s.note = noteVal;
+
+  // Auto-calculate deadline if start date and duration are provided
+  if (s.startDate && s.duration > 0 && !dueVal) {
+    const start = new Date(s.startDate + 'T00:00:00');
+    // duration - 1 because start date is day 1
+    start.setDate(start.getDate() + s.duration - 1);
+    const yyyy = start.getFullYear();
+    const mm = String(start.getMonth() + 1).padStart(2, '0');
+    const dd = String(start.getDate()).padStart(2, '0');
+    s.dueDate = `${yyyy}-${mm}-${dd}`;
+    document.getElementById('dp-due').value = s.dueDate;
+  }
+
+  saveST();
+  
+  // Update task list and stats
+  const row = document.getElementById(`tr-${dpTaskId}`);
+  if (row) {
+    // Rebuild task row inner content
+    let defaultItem = { id: dpTaskId, label: s.label, checked: s.checked, status: s.status };
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = buildTaskRow(defaultItem);
+    const newRow = tempDiv.firstElementChild;
+    row.className = newRow.className;
+    row.innerHTML = newRow.innerHTML;
+    // Rebind events to new row elements
+    const pill = row.querySelector('.task-pill');
+    const menu = row.querySelector('.task-menu');
+    const cb = row.querySelector('.task-cb');
+    
+    cb.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleCheck(dpTaskId, dpSecId);
+    });
+    if (pill) pill.addEventListener('click', (e) => { e.stopPropagation(); cycleStatus(dpTaskId, dpSecId); });
+    if (menu) menu.addEventListener('click', (e) => { e.stopPropagation(); openDetailPanel(dpTaskId, dpSecId); });
+  }
+
+  // Update section count and sidebar stats
+  refreshSection(dpSecId);
+  refreshSidebar();
+}
+
+function addTask(groupId, secId) {
+  const newId = `custom-${Date.now()}`;
+  const customTask = {
+    id: newId,
+    groupId: groupId,
+    label: 'New Task',
+    checked: false,
+    status: 'todo'
+  };
+
+  // Add to custom tasks array in ST
+  if (!Array.isArray(ST['__customTasks'])) {
+    ST['__customTasks'] = [];
+  }
+  ST['__customTasks'].push(customTask);
+
+  // Initialize task state
+  ST[newId] = {
+    checked: false,
+    status: 'todo',
+    label: 'New Task',
+    assignee: '',
+    startDate: '',
+    dueDate: '',
+    duration: 0,
+    note: ''
+  };
+
+  saveST();
+  renderSections();
+  openDetailPanel(newId, secId);
+}
+
+function deleteTask(taskId, secId) {
+  if (!confirm('Are you sure you want to delete this task?')) return;
+
+  if (taskId.startsWith('custom-')) {
+    // Remove from custom tasks
+    if (Array.isArray(ST['__customTasks'])) {
+      ST['__customTasks'] = ST['__customTasks'].filter(t => t.id !== taskId);
+    }
+  } else {
+    // Mark default task as deleted
+    if (!Array.isArray(ST['__deletedTasks'])) {
+      ST['__deletedTasks'] = [];
+    }
+    if (!ST['__deletedTasks'].includes(taskId)) {
+      ST['__deletedTasks'].push(taskId);
+    }
+  }
+
+  // Clean up ST entry
+  delete ST[taskId];
+
+  saveST();
+  closeDetailPanel();
+  renderSections();
+  refreshSidebar();
+}
+
+/* ═══════════════════════════════════
+   TIMELINE ESTIMATION
+   ═══════════════════════════════════ */
+function renderTimeline() {
+  const card = document.getElementById('timeline-card');
+  if (!card) return;
+
+  // Calculate timeline details
+  let totalDuration = 0;
+  let earliestStart = null;
+  const phaseDurations = {};
+
+  // Initialize phase durations
+  PHASES.forEach(p => {
+    phaseDurations[p.id] = 0;
+  });
+
+  // Accumulate durations from all tasks (default and custom, active)
+  SECTIONS.forEach(sec => {
+    sec.groups.forEach(g => {
+      const items = getGroupItems(g);
+      items.forEach(item => {
+        const s = ST[item.id] || {};
+        const dur = s.duration || 0;
+        totalDuration += dur;
+
+        // Track phase-wise duration
+        const phaseId = sec.phase; // sec.phase is e.g. 'discovery', 'ux', 'ui'
+        if (phaseDurations[phaseId] !== undefined) {
+          phaseDurations[phaseId] += dur;
+        }
+
+        // Track earliest start date
+        if (s.startDate) {
+          const d = new Date(s.startDate + 'T00:00:00');
+          if (!earliestStart || d < earliestStart) {
+            earliestStart = d;
+          }
+        }
+      });
+    });
+  });
+
+  let startDateStr = 'Not set';
+  let completionDateStr = 'Not set';
+
+  if (earliestStart) {
+    startDateStr = earliestStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const completionDate = new Date(earliestStart);
+    if (totalDuration > 0) {
+      completionDate.setDate(completionDate.getDate() + totalDuration - 1);
+      completionDateStr = completionDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } else {
+      completionDateStr = startDateStr;
+    }
+  }
+
+  // Build Phase breakdown bars html
+  const activePhaseIdx = getActivePhaseIdx();
+  const breakdownHTML = PHASES.map((p, idx) => {
+    const dur = phaseDurations[p.id] || 0;
+    if (dur === 0) return ''; // Skip phases with 0 days defined
+
+    const color = SECTIONS.find(s => s.phase === p.id)?.color || '#5A6B7D';
+    const status = getPhaseStatus(idx);
+    
+    let pct = 0;
+    // Calculate complete pct for this phase
+    let doneDur = 0;
+    let totalSecIds = PHASE_SECTIONS[p.id] || [];
+    let phaseTotalTasks = 0;
+    let phaseCompletedTasks = 0;
+    
+    totalSecIds.forEach(secId => {
+      const sec = SECTIONS.find(s => s.id === secId);
+      if (!sec) return;
+      sec.groups.forEach(g => {
+        const items = getGroupItems(g);
+        items.forEach(item => {
+          const s = ST[item.id] || {};
+          phaseTotalTasks++;
+          if (s.checked) {
+            phaseCompletedTasks++;
+          }
+        });
+      });
+    });
+    
+    const fillWidth = phaseTotalTasks ? Math.round((phaseCompletedTasks / phaseTotalTasks) * 100) : (status === 'completed' ? 100 : 0);
+
+    return `
+      <div class="tl-phase-row">
+        <span class="tl-phase-name">${p.label}</span>
+        <div class="tl-phase-bar">
+          <div class="tl-phase-fill" style="width:${fillWidth}%;background:${color}"></div>
+        </div>
+        <span class="tl-phase-days">${dur}d</span>
+      </div>
+    `;
+  }).join('');
+
+  card.innerHTML = `
+    <div class="scard-title">Timeline Estimate</div>
+    <div class="tl-row">
+      <span class="tl-label">Total Duration</span>
+      <span class="tl-value">${totalDuration} days</span>
+    </div>
+    <div class="tl-row">
+      <span class="tl-label">Est. Start Date</span>
+      <span class="tl-value">${startDateStr}</span>
+    </div>
+    <div class="tl-row">
+      <span class="tl-label">Est. Completion</span>
+      <span class="tl-value">${completionDateStr}</span>
+    </div>
+    ${breakdownHTML ? `<div class="tl-divider"></div>${breakdownHTML}` : ''}
+  `;
+}
+
+/* ═══════════════════════════════════
    INIT
 ═══════════════════════════════════ */
 async function init() {
@@ -1697,7 +2386,9 @@ async function init() {
   renderMiniBars();
   initChart();
   refreshSidebar();
+  renderTimeline();
   updateDate();
+  bindDetailPanel();
 
   // 3. Try loading from Neon cloud
   setSyncState('saving'); // show "connecting"
