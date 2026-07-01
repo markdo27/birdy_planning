@@ -228,6 +228,11 @@
 
     .phase-step.completed { border-bottom-color: var(--mint); }
     .phase-step.active    { border-bottom-color: var(--gold); }
+    .phase-step.viewing   { background: rgba(255,255,255,.06); border-bottom-width: 3px; }
+    .phase-step.viewing.completed { border-bottom-color: var(--mint); }
+    .phase-step.viewing.active    { border-bottom-color: var(--gold); }
+    .phase-step.viewing.pending   { border-bottom-color: var(--sky);  }
+    .phase-step.viewing .phase-lbl { color: var(--text-1); }
 
     .phase-dot {
       width: 24px; height: 24px;
@@ -689,6 +694,37 @@
       .phase-bar-inner { padding: 0 24px; }
     }
 
+    /* Empty state for phases with no sections */
+    .phase-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 30px;
+      border-radius: var(--r-lg);
+      background: var(--bg-card);
+      border: 1px dashed var(--border);
+    }
+    .phase-empty-icon {
+      font-size: 40px;
+      margin-bottom: 16px;
+      opacity: .4;
+    }
+    .phase-empty-title {
+      font-family: var(--fh);
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-1);
+      margin-bottom: 6px;
+    }
+    .phase-empty-sub {
+      font-size: 13px;
+      color: var(--text-2);
+      line-height: 1.5;
+      max-width: 340px;
+    }
+
     @media (max-width: 640px) {
       .header-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
       .header-meta  { text-align: left; }
@@ -907,6 +943,33 @@ const PHASE_SECTIONS = {
   'launch':      [],
   'maintenance': [],
 };
+
+/* Empty state descriptions for phases without task sections */
+const PHASE_EMPTY_DESC = {
+  'prototype':   'Build interactive Figma prototypes based on the completed UX/UI work. Add task sections here when ready.',
+  'lock':        'Review, finalize, and lock the prototype. No further design changes after this point.',
+  'development': 'Frontend & backend build starts here. Add sprints, tickets, and dev tasks when this phase kicks off.',
+  'testing':     'QA testing phase — functional, responsive, performance, and security audits.',
+  'launch':      'Production deploy, DNS, monitoring, go-live checklist.',
+  'maintenance': 'Post-launch support, bug fixes, and iterative improvements.',
+};
+
+/* Viewing state — separate from progress tracking.
+   This controls WHICH phase's sections are shown.
+   null = show the active (progress) phase */
+let viewingPhaseIdx = null;
+
+function getViewingPhaseIdx() {
+  return viewingPhaseIdx !== null ? viewingPhaseIdx : getActivePhaseIdx();
+}
+
+function setViewingPhase(idx) {
+  viewingPhaseIdx = idx;
+  renderPhaseBar();
+  renderSections();
+  renderMiniBars();
+  renderPhaseCard();
+}
 
 const SECTIONS = [
   {
@@ -1249,28 +1312,24 @@ function advancePhase() {
 ═══════════════════════════════════ */
 function renderPhaseBar() {
   const container = document.getElementById('phase-bar-inner');
+  const viewIdx = getViewingPhaseIdx();
   container.innerHTML =
     PHASES.map((p, i) => {
       const status = getPhaseStatus(i);
+      const isViewing = i === viewIdx;
       return `
-        <div class="phase-step ${status}" data-phase-idx="${i}">
+        <div class="phase-step ${status}${isViewing ? ' viewing' : ''}" data-phase-idx="${i}">
           <div class="phase-dot">${status==='completed'?'<svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>':i+1}</div>
           <div class="phase-lbl">${p.label}</div>
         </div>
       `;
     }).join('');
 
-  // Bind click events
+  // Bind click events — any phase is clickable for VIEWING
   container.querySelectorAll('.phase-step').forEach(el => {
     el.addEventListener('click', () => {
       const idx = parseInt(el.dataset.phaseIdx);
-      const active = getActivePhaseIdx();
-      // Can only click on completed phases to go back, or click next phase if tasks are done
-      if (idx <= active) {
-        setActivePhase(idx);
-      } else if (idx === active + 1 && phaseTasksComplete(PHASES[active].id)) {
-        setActivePhase(idx);
-      }
+      setViewingPhase(idx);
     });
   });
 }
@@ -1279,12 +1338,13 @@ function renderPhaseBar() {
    PHASE CARD (Sidebar)
 ═══════════════════════════════════ */
 function renderPhaseCard() {
-  const idx     = getActivePhaseIdx();
-  const phase   = PHASES[idx];
+  const viewIdx = getViewingPhaseIdx();
+  const activeIdx = getActivePhaseIdx();
+  const phase   = PHASES[viewIdx];
   const secIds  = PHASE_SECTIONS[phase.id] || [];
-  const isLast  = idx >= PHASES.length - 1;
+  const isLast  = activeIdx >= PHASES.length - 1;
   const allDone = phaseTasksComplete(phase.id);
-  const nextP   = !isLast ? PHASES[idx + 1] : null;
+  const isViewingActive = viewIdx === activeIdx;
 
   // Compute tasks done / total for this phase's sections
   let phaseDone = 0, phaseTotal = 0;
@@ -1297,22 +1357,31 @@ function renderPhaseCard() {
   });
 
   const card = document.getElementById('phase-card');
-  card.className = `scard phase-card${allDone && !isLast ? ' all-done' : ''}`;
+  card.className = `scard phase-card${allDone && !isLast && isViewingActive ? ' all-done' : ''}`;
 
+  // Advance button only shows when viewing the active progress phase
   let btnHTML = '';
-  if (isLast) {
-    // Last phase — show completion
-    btnHTML = allDone
-      ? `<button class="phase-advance-btn ready" disabled style="cursor:default">🎉 PROJECT COMPLETE</button>`
-      : '';
-  } else if (allDone) {
-    btnHTML = `<button class="phase-advance-btn ready" onclick="advancePhase()">Advance to ${nextP.label} <span class="btn-arrow">→</span></button>`;
-  } else if (phaseTotal > 0) {
-    btnHTML = `<button class="phase-advance-btn not-ready">${phaseDone}/${phaseTotal} tasks — Complete all to advance</button>`;
+  if (isViewingActive) {
+    const nextP = activeIdx < PHASES.length - 1 ? PHASES[activeIdx + 1] : null;
+    if (isLast) {
+      btnHTML = allDone
+        ? `<button class="phase-advance-btn ready" disabled style="cursor:default">PROJECT COMPLETE</button>`
+        : '';
+    } else if (allDone) {
+      btnHTML = `<button class="phase-advance-btn ready" onclick="advancePhase()">Advance to ${nextP.label} <span class="btn-arrow">→</span></button>`;
+    } else if (phaseTotal > 0) {
+      btnHTML = `<button class="phase-advance-btn not-ready">${phaseDone}/${phaseTotal} tasks — Complete all to advance</button>`;
+    }
+  } else {
+    // Viewing a non-active phase — show context
+    const statusLabel = viewIdx < activeIdx ? '✓ Completed' : 'Upcoming';
+    btnHTML = `<div style="margin-top:10px;font-size:11px;color:var(--text-2);letter-spacing:.05em;text-transform:uppercase;font-family:var(--fh);font-weight:700;">${statusLabel}</div>`;
   }
 
+  const titleLabel = isViewingActive ? 'Current Phase' : 'Viewing Phase';
+
   card.innerHTML = `
-    <div class="scard-title">Current Phase</div>
+    <div class="scard-title">${titleLabel}</div>
     <div class="live-badge">
       <div class="live-dot"></div>
       <span class="live-txt">${phase.label}</span>
@@ -1326,13 +1395,42 @@ function renderPhaseCard() {
    SECTIONS
 ═══════════════════════════════════ */
 function renderSections() {
-  const root = document.getElementById('sections');
-  root.innerHTML = SECTIONS.map(s => buildSection(s)).join('');
-  bindSectionEvents();
+  const root   = document.getElementById('sections');
+  const viewIdx = getViewingPhaseIdx();
+  const phase  = PHASES[viewIdx];
+  const secIds = PHASE_SECTIONS[phase.id] || [];
+
+  // Filter sections for the currently viewed phase
+  const visibleSections = secIds.length > 0
+    ? SECTIONS.filter(s => secIds.includes(s.id))
+    : [];
+
+  if (visibleSections.length === 0) {
+    // Phase has no task sections — show empty state
+    const emptyDesc = PHASE_EMPTY_DESC[phase.id] || phase.desc;
+    root.innerHTML = `
+      <div class="phase-empty">
+        <div class="phase-empty-icon">
+          <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="3"/>
+            <line x1="12" y1="8" x2="12" y2="16"/>
+            <line x1="8" y1="12" x2="16" y2="12"/>
+          </svg>
+        </div>
+        <div class="phase-empty-title">${phase.label}</div>
+        <div class="phase-empty-sub">${emptyDesc}</div>
+      </div>
+    `;
+    return;
+  }
+
+  root.innerHTML = visibleSections.map(s => buildSection(s)).join('');
+  bindSectionEvents(visibleSections);
 }
 
-function bindSectionEvents() {
-  SECTIONS.forEach(sec => {
+function bindSectionEvents(sections) {
+  const secs = sections || SECTIONS;
+  secs.forEach(sec => {
     document.getElementById(`sh-${sec.id}`).addEventListener('click', () => toggleCollapse(sec.id));
     sec.groups.forEach(g => {
       g.items.forEach(item => {
