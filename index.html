@@ -1229,7 +1229,7 @@ const PHASES = [
 ];
 
 /* Phase-to-section mapping: which sections belong to which phase */
-const PHASE_SECTIONS = {
+const STATIC_PHASE_SECTIONS = {
   'discovery':   ['product-strategy', 'product-roadmap'],
   'ux':          ['line-collective'],
   'ui':          ['ui-design'],
@@ -1268,7 +1268,68 @@ function setViewingPhase(idx) {
   renderPhaseCard();
 }
 
-const SECTIONS = [
+let PHASE_SECTIONS = {};
+let SECTIONS = [];
+
+function isSectionDeleted(id) {
+  const del = ST['__deletedSections'];
+  return Array.isArray(del) && del.includes(id);
+}
+
+function isGroupDeleted(id) {
+  const del = ST['__deletedGroups'];
+  return Array.isArray(del) && del.includes(id);
+}
+
+function syncDynamicSections() {
+  // Deep clone STATIC_SECTIONS so we don't mutate the baseline data
+  SECTIONS = JSON.parse(JSON.stringify(STATIC_SECTIONS)).filter(s => !isSectionDeleted(s.id));
+  
+  // Initialize PHASE_SECTIONS from STATIC_PHASE_SECTIONS
+  PHASES.forEach(p => {
+    PHASE_SECTIONS[p.id] = (STATIC_PHASE_SECTIONS[p.id] || []).filter(sid => !isSectionDeleted(sid));
+  });
+
+  // Append custom sections
+  const customSecs = ST['__customSections'] || [];
+  customSecs.forEach(sec => {
+    if (isSectionDeleted(sec.id)) return;
+    
+    // Ensure groups are built correctly
+    const groups = [];
+    (sec.groups || []).forEach(g => {
+      groups.push(g);
+    });
+    
+    SECTIONS.push({
+      ...sec,
+      groups: groups
+    });
+    
+    if (!PHASE_SECTIONS[sec.phase]) PHASE_SECTIONS[sec.phase] = [];
+    if (!PHASE_SECTIONS[sec.phase].includes(sec.id)) {
+      PHASE_SECTIONS[sec.phase].push(sec.id);
+    }
+  });
+
+  // Inject custom groups into their respective sections (both static and custom sections)
+  const customGroups = ST['__customGroups'] || [];
+  customGroups.forEach(cg => {
+    if (isGroupDeleted(cg.id)) return;
+    const sec = SECTIONS.find(s => s.id === cg.secId);
+    if (sec) {
+      if (!sec.groups.some(g => g.id === cg.id)) {
+        sec.groups.push({
+          id: cg.id,
+          title: cg.title,
+          items: cg.items || []
+        });
+      }
+    }
+  });
+}
+
+const STATIC_SECTIONS = [
   {
     id:'product-strategy',
     title:'Product Strategy',
@@ -1439,7 +1500,10 @@ let isCloudConnected = false;
 function loadFromLocal() {
   try {
     const s = localStorage.getItem('birdy-v2');
-    if (s) ST = JSON.parse(s);
+    if (s) {
+      ST = JSON.parse(s);
+      syncDynamicSections();
+    }
   } catch(e){}
 }
 
@@ -1750,25 +1814,30 @@ function renderSections() {
     : [];
 
   if (visibleSections.length === 0) {
-    // Phase has no task sections — show empty state
+    // Phase has no task sections — show empty state with Add Section action
     const emptyDesc = PHASE_EMPTY_DESC[phase.id] || phase.desc;
     root.innerHTML = `
-      <div class="phase-empty">
-        <div class="phase-empty-icon">
-          <svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="var(--text-3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="18" height="18" rx="3"/>
-            <line x1="12" y1="8" x2="12" y2="16"/>
-            <line x1="8" y1="12" x2="16" y2="12"/>
+      <div class="phase-empty" onclick="addSection('${phase.id}')" style="cursor:pointer; transition: transform .2s;" onmouseover="this.style.transform='scale(1.005)'" onmouseout="this.style.transform='scale(1)'">
+        <div class="phase-empty-icon" style="color: var(--gold); border: 2.5px dashed rgba(244,168,35,0.25); border-radius: 50%; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; margin-bottom: 16px;">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
         </div>
         <div class="phase-empty-title">${phase.label}</div>
-        <div class="phase-empty-sub">${emptyDesc}</div>
+        <div class="phase-empty-sub" style="margin-bottom: 16px;">${emptyDesc}</div>
+        <button class="add-task-btn" style="width: auto; border-color: var(--gold); color: var(--gold); font-size: 11.5px; font-weight: 700; padding: 8px 18px;">+ Create Main Task</button>
       </div>
     `;
     return;
   }
 
-  root.innerHTML = visibleSections.map(s => buildSection(s)).join('');
+  // Render visible sections + Add Main Task button at the bottom of the list
+  root.innerHTML = visibleSections.map(s => buildSection(s)).join('') + `
+    <button class="add-task-btn" style="border-style: dashed; border-color: var(--gold); color: var(--gold); padding: 12px 24px; max-width: 250px; margin: 20px auto 0 auto; display: flex; justify-content: center; font-weight: 700;" onclick="addSection('${phase.id}')">
+      + Add Main Task to ${phase.label}
+    </button>
+  `;
   bindSectionEvents(visibleSections);
 }
 
@@ -1806,7 +1875,17 @@ function buildSection(sec) {
       <div class="sc-header" id="sh-${sec.id}">
         <div class="sc-icon ${sec.iconCls}">${sec.icon}</div>
         <div class="sc-title-group">
-          <div class="sc-title">${sec.title}</div>
+          <div class="sc-title" style="display: flex; align-items: center; gap: 8px;">
+            <span>${sec.title}</span>
+            ${isCustomSection(sec.id) ? `
+              <span onclick="event.stopPropagation(); renameSection('${sec.id}')" style="display:inline-flex; align-items:center; cursor:pointer;" title="Rename Main Task">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.5;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              </span>
+              <span onclick="event.stopPropagation(); deleteSection('${sec.id}')" style="display:inline-flex; align-items:center; cursor:pointer;" title="Delete Main Task">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.5;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </span>
+            ` : ''}
+          </div>
           <div class="sc-sub">${sec.sub}</div>
         </div>
         <div class="sc-meta">
@@ -1824,6 +1903,9 @@ function buildSection(sec) {
       </div>
       <div class="sc-body">
         ${sec.groups.map(g => buildGroup(g, sec.id)).join('')}
+        <button class="add-task-btn" style="border-color: rgba(255,255,255,0.06); margin-top: 12px; max-width: 140px; font-size: 11px; padding: 6px 12px;" onclick="addGroup('${sec.id}')">
+          + Add Group
+        </button>
       </div>
     </div>
   `;
@@ -1833,9 +1915,17 @@ function buildGroup(g, secId) {
   const items = getGroupItems(g);
   return `
     <div class="tg" id="tg-${g.id}">
-      <div class="tg-title">
-        ${g.title}
+      <div class="tg-title" style="display: flex; align-items: center; gap: 8px;">
+        <span>${g.title}</span>
         ${g.badge ? `<span class="tg-badge">${g.badge}</span>` : ''}
+        ${isCustomGroup(g.id) ? `
+          <span onclick="renameGroup('${g.id}', '${secId}')" style="display:inline-flex; align-items:center; cursor:pointer;" title="Rename Group">
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.4;"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+          </span>
+          <span onclick="deleteGroup('${g.id}', '${secId}')" style="display:inline-flex; align-items:center; cursor:pointer;" title="Delete Group">
+            <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.4;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </span>
+        ` : ''}
       </div>
       <div class="task-list">
         ${items.map(i => buildTaskRow(i)).join('')}
@@ -1932,6 +2022,7 @@ function patchRow(id) {
    FULL REFRESH
 ═══════════════════════════════════ */
 function fullRefresh() {
+  syncDynamicSections();
   renderPhaseBar();
   renderPhaseCard();
   renderSections();
@@ -2064,6 +2155,137 @@ function updateTimestamp() {
   document.getElementById('hupd').textContent = ts
     ? `Last updated: ${new Date(ts).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}`
     : 'No changes recorded yet';
+}
+
+/* ═══════════════════════════════════
+   CUSTOM SECTIONS & GROUPS MANAGEMENT
+   ═══════════════════════════════════ */
+function isCustomSection(id) {
+  return id.startsWith('section-');
+}
+
+function isCustomGroup(id) {
+  return id.startsWith('g-custom-');
+}
+
+function addSection(phaseId) {
+  const name = prompt("Enter Main Task (Section) Name:", "New Main Task");
+  if (name === null) return; // cancelled
+  const title = name.trim() || 'New Main Task';
+
+  const sub = prompt("Enter Subtitle / Scope Description:", "Scope of work description");
+  if (sub === null) return; // cancelled
+  const subtitle = sub.trim() || 'Scope of work description';
+
+  const secId = `section-${Date.now()}`;
+  const newSec = {
+    id: secId,
+    title: title,
+    sub: subtitle,
+    phase: phaseId,
+    phaseTag: 't-' + phaseId.slice(0, 4),
+    icon: `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>`,
+    iconCls: 'c-' + phaseId.slice(0, 4),
+    color: '#A78BFA',
+    groups: [
+      {
+        id: 'g-custom-' + Date.now(),
+        secId: secId,
+        title: 'General Tasks',
+        items: []
+      }
+    ]
+  };
+
+  if (!ST['__customSections']) ST['__customSections'] = [];
+  ST['__customSections'].push(newSec);
+  saveST();
+  fullRefresh();
+}
+
+function renameSection(secId) {
+  const customSecs = ST['__customSections'] || [];
+  const sec = customSecs.find(s => s.id === secId);
+  if (!sec) return;
+
+  const newTitle = prompt("Rename Main Task:", sec.title);
+  if (newTitle === null) return;
+  sec.title = newTitle.trim() || sec.title;
+
+  const newSub = prompt("Rename Subtitle / Description:", sec.sub);
+  if (newSub === null) return;
+  sec.sub = newSub.trim() || sec.sub;
+
+  saveST();
+  fullRefresh();
+}
+
+function deleteSection(secId) {
+  if (!confirm("Are you sure you want to delete this Main Task and all its groups/tasks?")) return;
+
+  if (isCustomSection(secId)) {
+    if (ST['__customSections']) {
+      ST['__customSections'] = ST['__customSections'].filter(s => s.id !== secId);
+    }
+  } else {
+    if (!ST['__deletedSections']) ST['__deletedSections'] = [];
+    if (!ST['__deletedSections'].includes(secId)) {
+      ST['__deletedSections'].push(secId);
+    }
+  }
+
+  saveST();
+  fullRefresh();
+}
+
+function addGroup(secId) {
+  const name = prompt("Enter Group Name:", "New Group");
+  if (name === null) return;
+  const title = name.trim() || 'New Group';
+
+  const groupId = `g-custom-${Date.now()}`;
+  const newGroup = {
+    id: groupId,
+    secId: secId,
+    title: title,
+    items: []
+  };
+
+  if (!ST['__customGroups']) ST['__customGroups'] = [];
+  ST['__customGroups'].push(newGroup);
+  saveST();
+  fullRefresh();
+}
+
+function renameGroup(groupId, secId) {
+  const customGroups = ST['__customGroups'] || [];
+  const cg = customGroups.find(g => g.id === groupId);
+  if (!cg) return;
+
+  const newTitle = prompt("Rename Group:", cg.title);
+  if (newTitle === null) return;
+  cg.title = newTitle.trim() || cg.title;
+
+  saveST();
+  fullRefresh();
+}
+
+function deleteGroup(groupId, secId) {
+  if (!confirm("Are you sure you want to delete this Group and all its tasks?")) return;
+
+  if (isCustomGroup(groupId)) {
+    if (ST['__customGroups']) {
+      ST['__customGroups'] = ST['__customGroups'].filter(g => g.id !== groupId);
+    }
+  } else {
+    if (!ST['__deletedGroups']) ST['__deletedGroups'] = [];
+    if (!ST['__deletedGroups'].includes(groupId)) {
+      ST['__deletedGroups'].push(groupId);
+    }
+  }
+
+  saveST();
+  fullRefresh();
 }
 
 /* ═══════════════════════════════════
