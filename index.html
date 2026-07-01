@@ -1168,6 +1168,178 @@
       border-radius: 2px;
       transition: width .3s;
     }
+
+    /* ════════════════════════════════════
+       REDESIGNED KANBAN-STYLE TASK CARDS
+       ════════════════════════════════════ */
+    .task-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--status-color);
+      border-radius: var(--r-md);
+      padding: 16px;
+      margin-bottom: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 4px 12px var(--shadow);
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+    .task-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px var(--shadow);
+      border-color: var(--border-hover);
+    }
+    .task-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-3);
+    }
+    .task-card-header .tcard-group {
+      color: var(--text-2);
+    }
+    .task-card-header .tcard-duration {
+      background: var(--bg-card);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--text-2);
+    }
+    .task-card-title-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .task-card-title {
+      font-family: var(--fh);
+      font-size: 14.5px;
+      font-weight: 600;
+      color: var(--text-1);
+      line-height: 1.35;
+      flex: 1;
+    }
+    .task-card-assignee {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-2);
+    }
+    .task-card-assignee .assignee-icon {
+      color: var(--status-color);
+      font-size: 11px;
+      display: inline-flex;
+      align-items: center;
+    }
+    .task-card-action-box {
+      background: var(--action-bg);
+      border-radius: var(--r-sm);
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--text-1);
+      border-left: 2px solid var(--status-color);
+    }
+    .task-card-action-box .action-title {
+      font-weight: 700;
+      color: var(--status-color);
+      margin-bottom: 4px;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 0.05em;
+    }
+    .task-card-action-box .action-desc {
+      color: var(--text-2);
+      font-weight: 400;
+    }
+    .task-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+    .task-card-footer .tcard-date.overdue {
+      color: var(--rose);
+      font-weight: 600;
+    }
+    
+    /* ON TRACK list styles */
+    .ontrack-section {
+      margin-top: 14px;
+      border-top: 1px dashed var(--border);
+      padding-top: 12px;
+    }
+    .ontrack-title {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--text-3);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .ontrack-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .ontrack-row:hover {
+      background: var(--bg-card-hover);
+    }
+    .ontrack-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--status-color);
+      flex-shrink: 0;
+    }
+    .ontrack-lbl {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text-1);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ontrack-lbl.done {
+      color: var(--text-3);
+      text-decoration: line-through;
+      text-decoration-color: var(--border);
+    }
+    .ontrack-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-3);
+      flex-shrink: 0;
+    }
+    .ontrack-assignee {
+      background: var(--bg-card);
+      color: var(--text-2);
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      font-weight: 800;
+    }
   </style>
 </head>
 <body>
@@ -1723,6 +1895,17 @@ function isOverdue(dueDate) {
   return new Date(dueDate + 'T23:59:59') < new Date();
 }
 
+function getOverdueDaysStr(dueDate) {
+  if (!dueDate) return '';
+  const due = new Date(dueDate + 'T23:59:59');
+  const today = new Date();
+  due.setHours(0,0,0,0);
+  today.setHours(0,0,0,0);
+  const diffTime = today.getTime() - due.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  return diffDays > 0 ? `+${diffDays}d` : '';
+}
+
 /* Current detail panel state */
 let dpTaskId = null;
 let dpSecId = null;
@@ -2007,22 +2190,41 @@ function renderSections() {
 function bindSectionEvents(sections) {
   const secs = sections || SECTIONS;
   secs.forEach(sec => {
-    document.getElementById(`sh-${sec.id}`).addEventListener('click', () => toggleCollapse(sec.id));
+    const sh = document.getElementById(`sh-${sec.id}`);
+    if (sh) sh.addEventListener('click', () => toggleCollapse(sec.id));
+    
     sec.groups.forEach(g => {
       const items = getGroupItems(g);
       items.forEach(item => {
         getItem(item.id, { checked: item.checked || false, status: item.status || 'todo' });
-        const row  = document.getElementById(`tr-${item.id}`);
-        const pill = document.getElementById(`tp-${item.id}`);
-        const menu = document.getElementById(`tm-${item.id}`);
-        if (!row) return;
-        row.addEventListener('click', (e) => {
-          if (e.target === pill || pill.contains(e.target)) return;
-          if (menu && (e.target === menu || menu.contains(e.target))) return;
-          toggleCheck(item.id, sec.id);
-        });
-        if (pill) pill.addEventListener('click', (e) => { e.stopPropagation(); cycleStatus(item.id, sec.id); });
-        if (menu) menu.addEventListener('click', (e) => { e.stopPropagation(); openDetailPanel(item.id, sec.id); });
+        
+        // Try binding active card element click actions
+        const card = document.getElementById(`tc-card-${item.id}`);
+        const cardCb = document.getElementById(`tcb-card-${item.id}`);
+        
+        if (card) {
+          card.addEventListener('click', (e) => {
+            if (cardCb && (e.target === cardCb || cardCb.contains(e.target))) {
+              toggleCheck(item.id, sec.id);
+            } else {
+              openDetailPanel(item.id, sec.id);
+            }
+          });
+        }
+        
+        // Try binding ontrack row elements
+        const trackRow = document.getElementById(`tc-ontrack-${item.id}`);
+        const trackCb = document.getElementById(`tcb-ontrack-${item.id}`);
+        
+        if (trackRow) {
+          trackRow.addEventListener('click', (e) => {
+            if (trackCb && (e.target === trackCb || trackCb.contains(e.target))) {
+              toggleCheck(item.id, sec.id);
+            } else {
+              openDetailPanel(item.id, sec.id);
+            }
+          });
+        }
       });
     });
   });
@@ -2074,6 +2276,37 @@ function buildSection(sec) {
 
 function buildGroup(g, secId) {
   const items = getGroupItems(g);
+  
+  // Partition items
+  const activeItems = [];
+  const onTrackItems = [];
+  
+  items.forEach(item => {
+    const s = getItem(item.id, { checked: item.checked || false, status: item.status || 'todo' });
+    if (s.status === 'in-progress' || s.status === 'blocked') {
+      activeItems.push(item);
+    } else {
+      onTrackItems.push(item);
+    }
+  });
+
+  const activeHTML = activeItems.map(i => buildTaskCard(i, g.title, secId)).join('');
+  
+  let onTrackHTML = '';
+  if (onTrackItems.length > 0) {
+    onTrackHTML = `
+      <div class="ontrack-section">
+        <div class="ontrack-title">
+          <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.6; margin-right: 4px;"><polyline points="20 6 9 17 4 12"/></svg>
+          ON TRACK / COMPLETE
+        </div>
+        <div class="ontrack-list">
+          ${onTrackItems.map(i => buildOnTrackRow(i, secId)).join('')}
+        </div>
+      </div>
+    `;
+  }
+
   return `
     <div class="tg" id="tg-${g.id}">
       <div class="tg-title" style="display: flex; align-items: center; gap: 8px;">
@@ -2089,7 +2322,8 @@ function buildGroup(g, secId) {
         ` : ''}
       </div>
       <div class="task-list">
-        ${items.map(i => buildTaskRow(i)).join('')}
+        ${activeHTML}
+        ${onTrackHTML}
       </div>
       <button class="add-task-btn" onclick="addTask('${g.id}','${secId}')">
         <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -2099,35 +2333,77 @@ function buildGroup(g, secId) {
   `;
 }
 
-function buildTaskRow(item) {
-  const s   = getItem(item.id, { checked: item.checked || false, status: item.status || 'todo' });
-  const cfg = STATUS_CFG[s.status] || STATUS_CFG.todo;
+function buildTaskCard(item, groupTitle, secId) {
+  const s = getItem(item.id, { checked: item.checked || false, status: item.status || 'todo' });
   const label = getTaskLabel(item);
-  const assignee = s.assignee || '';
-  const duration = s.duration || 0;
-  const dueDate  = s.dueDate || '';
-  const overdue  = isOverdue(dueDate) && s.status !== 'done';
-
-  const assigneeHTML = assignee
-    ? `<div class="task-assignee" style="background:${assigneeColor(assignee)}" title="${assignee}">${assignee.charAt(0)}</div>`
-    : `<div class="task-assignee empty">+</div>`;
-  const durationHTML = duration > 0
-    ? `<span class="task-duration">${duration}d</span>`
+  
+  const statusColor = s.status === 'blocked' ? 'var(--rose)' : 'var(--sky)';
+  const actionBg = s.status === 'blocked' ? 'var(--rose-dim)' : 'var(--sky-dim)';
+  const actionTitleText = s.status === 'blocked' ? 'BLOCKER / ACTION REQUIRED' : 'NEXT STEPS / IN PROGRESS';
+  
+  const desc = s.note && s.note.trim() 
+    ? s.note.trim() 
+    : (s.status === 'blocked' 
+        ? 'Identify blocker details and resolve to resume operations.' 
+        : 'Active task in progress. Tap to open details and add notes.');
+        
+  const durationHTML = s.duration ? `<span class="tcard-duration">${s.duration}d</span>` : '';
+  const assigneeHTML = s.assignee 
+    ? `<div class="task-card-assignee" style="margin-top: 2px;"><span class="assignee-icon">◊</span><span>${s.assignee}</span></div>` 
     : '';
-  const deadlineHTML = dueDate
-    ? `<span class="task-deadline${overdue ? ' overdue' : ''}">${fmtDate(dueDate)}</span>`
+    
+  const overdueStr = getOverdueDaysStr(s.dueDate);
+  const overdueCls = overdueStr ? ' overdue' : '';
+  const dateLabel = s.dueDate 
+    ? `<span class="tcard-date${overdueCls}">${overdueStr ? 'overdue ' + overdueStr : 'due ' + fmtDate(s.dueDate)}</span>`
     : '';
 
   return `
-    <div class="task-row ${s.checked ? 'done' : ''}" id="tr-${item.id}">
-      <div class="task-cb ${s.checked ? 'on' : ''}" id="tc-${item.id}"></div>
-      <span class="task-lbl">${label}</span>
-      <div class="task-meta">
-        ${assigneeHTML}
+    <div class="task-card" id="tc-card-${item.id}" style="--status-color: ${statusColor}; --action-bg: ${actionBg};">
+      <div class="task-card-header">
+        <span class="tcard-group">${groupTitle}</span>
         ${durationHTML}
-        ${deadlineHTML}
-        <div class="task-pill ${cfg.cls}" id="tp-${item.id}">${cfg.label}</div>
-        <div class="task-menu" id="tm-${item.id}">⋮</div>
+      </div>
+      <div class="task-card-title-row">
+        <div class="task-cb ${s.checked ? 'on' : ''}" id="tcb-card-${item.id}"></div>
+        <div class="task-card-title">${label}</div>
+      </div>
+      ${assigneeHTML}
+      <div class="task-card-action-box">
+        <div class="action-title">${actionTitleText}</div>
+        <div class="action-desc">${desc}</div>
+      </div>
+      <div class="task-card-footer">
+        ${dateLabel}
+        <div style="font-size: 10px; font-weight: 700; text-transform: uppercase; color: ${statusColor};">${s.status}</div>
+      </div>
+    </div>
+  `;
+}
+
+function buildOnTrackRow(item, secId) {
+  const s = getItem(item.id, { checked: item.checked || false, status: item.status || 'todo' });
+  const label = getTaskLabel(item);
+  
+  const statusColor = s.status === 'done' ? 'var(--mint)' : 'var(--text-3)';
+  const labelCls = s.checked ? 'done' : '';
+  
+  const assigneeHTML = s.assignee 
+    ? `<div class="ontrack-assignee" style="background:${assigneeColor(s.assignee)}" title="${s.assignee}">${s.assignee.charAt(0)}</div>`
+    : '';
+    
+  const dateStr = s.dueDate ? fmtDate(s.dueDate) : '';
+  const durationStr = s.duration ? `${s.duration}d` : '';
+
+  return `
+    <div class="ontrack-row" id="tc-ontrack-${item.id}" style="--status-color: ${statusColor};">
+      <div class="ontrack-dot"></div>
+      <div class="task-cb ${s.checked ? 'on' : ''}" id="tcb-ontrack-${item.id}" style="width: 14px; height: 14px; border-radius: 4px; font-size: 8px;"></div>
+      <div class="ontrack-lbl ${labelCls}">${label}</div>
+      <div class="ontrack-meta">
+        ${assigneeHTML}
+        ${durationStr ? `<span>${durationStr}</span>` : ''}
+        ${dateStr ? `<span>${dateStr}</span>` : ''}
       </div>
     </div>
   `;
@@ -2149,7 +2425,7 @@ function toggleCheck(id, secId) {
   if (s.checked && s.status === 'todo')  s.status = 'done';
   if (!s.checked && s.status === 'done') s.status = 'todo';
   saveST();
-  patchRow(id);
+  renderSections();
   refreshSection(secId);
   refreshSidebar();
 }
@@ -2163,20 +2439,9 @@ function cycleStatus(id, secId) {
   if (s.status === 'blocked')     s.checked = false;
   if (s.status === 'in-progress') s.checked = false;
   saveST();
-  patchRow(id);
+  renderSections();
   refreshSection(secId);
   refreshSidebar();
-}
-
-function patchRow(id) {
-  const s   = getItem(id, {});
-  const cfg = STATUS_CFG[s.status] || STATUS_CFG.todo;
-  const row  = document.getElementById(`tr-${id}`);
-  const cb   = document.getElementById(`tc-${id}`);
-  const pill = document.getElementById(`tp-${id}`);
-  if (row)  row.className  = `task-row ${s.checked ? 'done' : ''}`;
-  if (cb)   cb.className   = `task-cb ${s.checked ? 'on' : ''}`;
-  if (pill) { pill.className = `task-pill ${cfg.cls}`; pill.textContent = cfg.label; }
 }
 
 /* ═══════════════════════════════════
