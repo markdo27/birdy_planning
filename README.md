@@ -2,70 +2,62 @@
 
 Internal project tracking dashboard for the **Birdy** travel agency web-app.
 
-![Status](https://img.shields.io/badge/status-active-brightgreen) ![Deploy](https://img.shields.io/badge/deploy-Vercel-black)
+![Status](https://img.shields.io/badge/status-active-brightgreen) ![Deploy](https://img.shields.io/badge/deploy-Vercel-black) ![DB](https://img.shields.io/badge/db-Neon_PostgreSQL-00e5a0)
 
 ---
 
 ## Quick Start (Local)
 
-Just open `index.html` in any browser. No build step required.
-
-Without Firebase configured, data is saved to **localStorage** (browser only).
+Open `index.html` in any browser. Without the API, data saves to **localStorage** only.
 
 ---
 
-## Deploy to Vercel (with Cloud Sync)
+## Deploy to Vercel (with Neon Cloud Storage)
 
-### 1. Create a Firebase Project
+### 1. Neon Database
 
-1. Go to [console.firebase.google.com](https://console.firebase.google.com)
-2. Click **Add Project** → name it `birdy-planning`
-3. Skip Google Analytics → **Create Project**
-4. In the left sidebar, click **Build → Firestore Database**
-5. Click **Create database** → choose **Start in test mode** → pick a region → **Enable**
-6. Go to **⚙ Project Settings → General** → scroll to **Your apps**
-7. Click the **Web** icon (`</>`) → register app (any nickname)
-8. Copy the `firebaseConfig` object — you'll need it next
+If you already created a Neon project via the Vercel integration, your `DATABASE_URL` is auto-configured. Skip to step 3.
 
-### 2. Add Firebase Config to the Dashboard
+Otherwise:
+1. Go to [neon.tech](https://neon.tech) → create a project
+2. Copy the **connection string**
+3. Add it as `DATABASE_URL` in Vercel → Project Settings → Environment Variables
 
-Open `index.html` and find the section near the top of the `<script>`:
+> **No manual SQL needed** — the API auto-creates the table on first request.
 
-```js
-const FIREBASE_ENABLED = false; // ← Change to true
-
-const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",          // ← Paste your values
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
-};
-```
-
-Replace the placeholder strings with your Firebase config values, and set `FIREBASE_ENABLED = true`.
-
-### 3. Push to GitHub
+### 2. Install Dependencies
 
 ```bash
-git init
-git add .
-git commit -m "Initial commit — Birdy project dashboard"
-git branch -M main
-git remote add origin https://github.com/YOUR_USERNAME/birdy-planning.git
-git push -u origin main
+npm install
 ```
 
-### 4. Deploy on Vercel
+### 3. Push to GitHub & Deploy
 
-1. Go to [vercel.com](https://vercel.com) → **Add New Project**
-2. Import your GitHub repo
-3. Framework preset: **Other** (it's a static HTML file)
-4. Click **Deploy**
-5. Your dashboard is live at `https://birdy-planning.vercel.app` (or similar)
+```bash
+git add .
+git commit -m "Deploy with Neon"
+git push
+```
 
-Every `git push` to `main` auto-deploys.
+Vercel auto-deploys on push. The serverless function at `/api/tasks` handles all database communication.
+
+---
+
+## Architecture
+
+```
+Browser (index.html)
+   │
+   │  GET  /api/tasks  → load state
+   │  POST /api/tasks  → save state
+   │
+Vercel Serverless Function (api/tasks.js)
+   │
+   │  @neondatabase/serverless (HTTP)
+   │
+Neon PostgreSQL
+   └── birdy_tasks (id, data JSONB, updated_at)
+```
 
 ---
 
@@ -73,43 +65,12 @@ Every `git push` to `main` auto-deploys.
 
 | Mode | Storage | When |
 |------|---------|------|
-| **Cloud (Firebase)** | Firestore `dashboards/birdy-main` | When `FIREBASE_ENABLED = true` and config is valid |
-| **Local fallback** | Browser `localStorage` | When Firebase is disabled or offline |
+| **Cloud (Neon)** | PostgreSQL `birdy_tasks` table | When deployed on Vercel with `DATABASE_URL` set |
+| **Local fallback** | Browser `localStorage` | When running locally or API is unreachable |
 
-- Changes sync to Firestore within ~400ms (debounced)
-- Real-time listener (`onSnapshot`) pushes changes to all open tabs/devices
-- Offline? Falls back to localStorage and shows `⚠ Offline` badge
-- Header shows sync status: `☁ Synced` / `↻ Saving…` / `⚠ Offline` / `💾 Local`
-
----
-
-## Firestore Security Rules
-
-After initial setup, go to **Firestore → Rules** and set:
-
-```
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /dashboards/{doc} {
-      allow read, write: if true;
-    }
-  }
-}
-```
-
-> This allows open read/write — fine for an internal dashboard on a private URL.
-> For production, add Firebase Authentication and restrict to authenticated users.
-
----
-
-## Tech Stack
-
-- **Frontend**: Vanilla HTML / CSS / JS (single file, no build step)
-- **Fonts**: [Outfit](https://fonts.google.com/specimen/Outfit) + [Inter](https://fonts.google.com/specimen/Inter)
-- **Charts**: [Chart.js 4](https://www.chartjs.org/)
-- **Database**: [Firebase Firestore](https://firebase.google.com/docs/firestore) (optional)
-- **Hosting**: [Vercel](https://vercel.com)
+- Changes save to Neon within ~400ms (debounced)
+- Dashboard polls every 30s for remote changes (multi-device support)
+- Header badge shows: `☁ Synced` / `↻ Saving…` / `⚠ Offline` / `💾 Local`
 
 ---
 
@@ -117,11 +78,26 @@ service cloud.firestore {
 
 ```
 birdy-planning/
-├── index.html      ← Complete self-contained dashboard
-├── vercel.json     ← Vercel deployment config
-├── .gitignore      ← Git ignore rules
-└── README.md       ← This file
+├── index.html          ← Dashboard UI (self-contained HTML/CSS/JS)
+├── api/
+│   └── tasks.js        ← Vercel serverless function (GET/POST → Neon)
+├── package.json        ← @neondatabase/serverless dependency
+├── vercel.json         ← Vercel deployment config
+├── .env.example        ← Template for DATABASE_URL
+├── .gitignore
+└── README.md
 ```
+
+---
+
+## Tech Stack
+
+- **Frontend**: Vanilla HTML / CSS / JS (no build step)
+- **Fonts**: [Outfit](https://fonts.google.com/specimen/Outfit) + [Inter](https://fonts.google.com/specimen/Inter)
+- **Charts**: [Chart.js 4](https://www.chartjs.org/)
+- **Database**: [Neon](https://neon.tech) (serverless PostgreSQL)
+- **API**: Vercel Serverless Functions
+- **Hosting**: [Vercel](https://vercel.com)
 
 ---
 

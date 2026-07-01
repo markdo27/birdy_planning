@@ -63,7 +63,6 @@
       line-height: 1.6;
     }
 
-    /* ─── ambient background mesh ─── */
     body::before {
       content: '';
       position: fixed;
@@ -96,7 +95,6 @@
       flex-wrap: wrap;
     }
 
-    /* brand */
     .brand { display: flex; align-items: center; gap: 16px; }
 
     .brand-logo {
@@ -129,7 +127,6 @@
       font-weight: 500;
     }
 
-    /* header stat chips */
     .header-chips {
       display: flex;
       align-items: center;
@@ -164,7 +161,6 @@
       letter-spacing: .1em;
     }
 
-    /* sync indicator */
     .sync-badge {
       display: inline-flex;
       align-items: center;
@@ -178,6 +174,7 @@
       text-transform: uppercase;
       transition: all .3s;
       flex-shrink: 0;
+      cursor: default;
     }
     .sync-badge.synced   { background: var(--mint-dim);  color: var(--mint);  border: 1px solid rgba(52,211,153,.2); }
     .sync-badge.saving   { background: var(--sky-dim);   color: var(--sky);   border: 1px solid rgba(56,189,248,.2); }
@@ -186,7 +183,6 @@
 
     .sync-icon { font-size: 12px; }
 
-    /* meta */
     .header-meta { text-align: right; }
     .header-meta .h-date { font-size: 13px; color: var(--text-2); font-weight: 500; }
     .header-meta .h-upd  { font-size: 11px; color: var(--text-3); margin-top: 3px; }
@@ -259,7 +255,6 @@
     .phase-step.active    .phase-lbl { color: var(--gold); }
     .phase-step.pending   .phase-lbl { color: var(--text-3); }
 
-    /* connector line between steps */
     .phase-step:not(:last-child)::after {
       content: '';
       position: absolute;
@@ -299,7 +294,6 @@
     }
     .sc:hover { border-color: var(--border-hover); box-shadow: 0 8px 40px rgba(0,0,0,.35); }
 
-    /* section header */
     .sc-header {
       padding: 20px 26px;
       display: flex;
@@ -330,11 +324,7 @@
 
     .sc-meta { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
-    .sc-count {
-      font-family: var(--fh);
-      font-size: 14px;
-      font-weight: 800;
-    }
+    .sc-count { font-family: var(--fh); font-size: 14px; font-weight: 800; }
 
     .ptag {
       font-size: 9.5px; font-weight: 700;
@@ -359,15 +349,12 @@
     .sc-chevron svg { width: 14px; height: 14px; stroke: var(--text-2); transition: transform .3s; }
     .sc.collapsed .sc-chevron svg { transform: rotate(-90deg); }
 
-    /* progress strip */
     .sc-bar { height: 3px; background: rgba(255,255,255,.05); }
     .sc-bar-fill { height: 100%; border-radius: 0 3px 3px 0; transition: width .55s cubic-bezier(.4,0,.2,1); }
 
-    /* section body */
     .sc-body { padding: 20px 26px 26px; display: flex; flex-direction: column; gap: 22px; }
     .sc.collapsed .sc-body { display: none; }
 
-    /* ── Task Groups ── */
     .tg-title {
       font-family: var(--fh);
       font-size: 11px;
@@ -395,7 +382,6 @@
 
     .task-list { display: flex; flex-direction: column; gap: 3px; }
 
-    /* ── Task Row ── */
     .task-row {
       display: flex;
       align-items: center;
@@ -492,7 +478,6 @@
       margin-bottom: 18px;
     }
 
-    /* current phase card */
     .scard.phase-card {
       background: linear-gradient(135deg, rgba(244,168,35,.1) 0%, rgba(244,168,35,.03) 100%);
       border-color: rgba(244,168,35,.2);
@@ -536,7 +521,6 @@
       line-height: 1.65;
     }
 
-    /* donut chart */
     .chart-wrap {
       position: relative;
       width: 140px;
@@ -566,10 +550,8 @@
 
     .chart-lbl { font-size: 10px; color: var(--text-3); margin-top: 3px; letter-spacing: .08em; text-transform: uppercase; }
 
-    /* section mini bars */
     .mini-bars { display: flex; flex-direction: column; gap: 13px; }
 
-    .mbar-row {}
     .mbar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
     .mbar-name { font-size: 11.5px; font-weight: 500; color: var(--text-2); }
     .mbar-pct  { font-family: var(--fh); font-size: 12px; font-weight: 800; color: var(--text-1); }
@@ -577,7 +559,6 @@
     .mbar-track { height: 4px; background: rgba(255,255,255,.06); border-radius: 100px; overflow: hidden; }
     .mbar-fill  { height: 100%; border-radius: 100px; transition: width .55s cubic-bezier(.4,0,.2,1); }
 
-    /* quick stats grid */
     .qstats { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
 
     .qstat {
@@ -587,12 +568,7 @@
       padding: 13px 14px;
     }
 
-    .qstat-val {
-      font-family: var(--fh);
-      font-size: 26px;
-      font-weight: 900;
-      line-height: 1;
-    }
+    .qstat-val { font-family: var(--fh); font-size: 26px; font-weight: 900; line-height: 1; }
 
     .qstat-lbl {
       font-size: 9.5px;
@@ -602,7 +578,6 @@
       margin-top: 4px;
     }
 
-    /* roadmap items */
     .rm-items { display: flex; flex-direction: column; gap: 10px; }
 
     .rm-item {
@@ -616,7 +591,6 @@
     }
 
     .rm-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
-
     .rm-title { font-family: var(--fh); font-size: 13px; font-weight: 800; }
     .rm-sub   { font-size: 11px; color: var(--text-2); margin-top: 2px; line-height: 1.4; }
     .rm-tag {
@@ -629,9 +603,6 @@
       border-radius: 100px;
     }
 
-    /* ════════════════════════════════════
-       FOOTER
-    ════════════════════════════════════ */
     footer {
       text-align: center;
       padding: 20px 48px;
@@ -642,9 +613,6 @@
       z-index: 1;
     }
 
-    /* ════════════════════════════════════
-       MISC
-    ════════════════════════════════════ */
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 3px; }
@@ -685,7 +653,6 @@
 </head>
 <body>
 
-<!-- ─── HEADER ─── -->
 <header class="header">
   <div class="header-inner">
     <div class="brand">
@@ -726,20 +693,14 @@
   </div>
 </header>
 
-<!-- ─── PHASE TIMELINE ─── -->
 <nav class="phase-bar">
   <div class="phase-bar-inner" id="phase-bar-inner"></div>
 </nav>
 
-<!-- ─── MAIN ─── -->
 <main class="main">
-  <!-- left: scope sections -->
   <div class="sections" id="sections"></div>
 
-  <!-- right: sidebar -->
   <aside class="sidebar">
-
-    <!-- Current Phase -->
     <div class="scard phase-card">
       <div class="scard-title">Current Phase</div>
       <div class="live-badge">
@@ -749,7 +710,6 @@
       <p class="phase-desc">Defining product vision, principles, and project scope. Aligning all stakeholders before moving into UX strategy and architecture.</p>
     </div>
 
-    <!-- Overall Progress -->
     <div class="scard">
       <div class="scard-title">Overall Progress</div>
       <div class="chart-wrap">
@@ -762,7 +722,6 @@
       <div class="mini-bars" id="mini-bars"></div>
     </div>
 
-    <!-- Quick Stats -->
     <div class="scard">
       <div class="scard-title">Task Breakdown</div>
       <div class="qstats">
@@ -785,7 +744,6 @@
       </div>
     </div>
 
-    <!-- Roadmap -->
     <div class="scard">
       <div class="scard-title">Product Roadmap</div>
       <div class="rm-items">
@@ -807,7 +765,6 @@
         </div>
       </div>
     </div>
-
   </aside>
 </main>
 
@@ -815,140 +772,32 @@
   Birdy Project Dashboard · Line Collective × Birdy Travel Agency · <span id="fy"></span>
 </footer>
 
-<!-- ═══════════════════════════════════════════════
-     FIREBASE SDK (compat v9 — CDN bundle)
-═══════════════════════════════════════════════ -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
 <script>
 /* ═══════════════════════════════════════════════
-   🔧  FIREBASE CONFIG — PASTE YOUR VALUES HERE
+   API CONFIGURATION
    ═══════════════════════════════════════════════
-   Go to Firebase Console → Project Settings → Your apps (Web)
-   Copy the config object and replace the placeholder values below.
-   Set FIREBASE_ENABLED = true once you've filled in the config.
+   The dashboard talks to /api/tasks — a Vercel
+   serverless function that reads/writes Neon PostgreSQL.
+   No config needed here — DATABASE_URL is set as a
+   Vercel environment variable.
 */
-const FIREBASE_ENABLED = true;
+const API_URL   = '/api/tasks';
+const POLL_MS   = 30000;  // poll for remote changes every 30s
+let   pollTimer = null;
 
-const firebaseConfig = {
-  apiKey:            "AIzaSyBDyYRJNbb9x2p6jCqug72b2zoE_7kW8Wo",
-  authDomain:        "birdy-planning.firebaseapp.com",
-  projectId:         "birdy-planning",
-  storageBucket:     "birdy-planning.firebasestorage.app",
-  messagingSenderId: "911967430897",
-  appId:             "1:911967430897:web:1eca6bfaffe73813d06150"
-};
-
-/* ── Firestore document path ── */
-const FS_COLLECTION = 'dashboards';
-const FS_DOC_ID     = 'birdy-main';
-
-/* ═══════════════════════════════════════════════
-   FIREBASE INIT
-═══════════════════════════════════════════════ */
-let db = null;
-let docRef = null;
-let unsubscribe = null;
-let isOnline = false;
-let ignoreNextSnapshot = false; // prevent echo from our own writes
-
-function initFirebase() {
-  if (!FIREBASE_ENABLED) return false;
-  try {
-    firebase.initializeApp(firebaseConfig);
-    db = firebase.firestore();
-    docRef = db.collection(FS_COLLECTION).doc(FS_DOC_ID);
-    isOnline = true;
-    return true;
-  } catch (e) {
-    console.warn('Firebase init failed, falling back to localStorage:', e);
-    return false;
-  }
-}
-
-/* ── Sync Badge UI ── */
-function setSyncState(state) {
-  const badge = document.getElementById('sync-badge');
-  const icon  = document.getElementById('sync-icon');
-  const text  = document.getElementById('sync-text');
-  badge.className = 'sync-badge ' + state;
-  switch (state) {
-    case 'synced':
-      icon.innerHTML = '☁️'; icon.className = 'sync-icon';
-      text.textContent = 'Synced'; break;
-    case 'saving':
-      icon.innerHTML = '↻'; icon.className = 'sync-icon sync-spin';
-      text.textContent = 'Saving…'; break;
-    case 'offline':
-      icon.innerHTML = '⚠'; icon.className = 'sync-icon';
-      text.textContent = 'Offline'; break;
-    case 'local':
-      icon.innerHTML = '💾'; icon.className = 'sync-icon';
-      text.textContent = 'Local'; break;
-  }
-}
-
-/* ── Write to Firestore with debounce ── */
-let saveTimer = null;
-
-function saveToCloud() {
-  if (!isOnline || !docRef) return;
-  clearTimeout(saveTimer);
-  setSyncState('saving');
-
-  saveTimer = setTimeout(() => {
-    ignoreNextSnapshot = true;
-    docRef.set({
-      tasks: ST,
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-      setSyncState('synced');
-    }).catch(err => {
-      console.warn('Firestore write error:', err);
-      setSyncState('offline');
-      isOnline = false;
-    });
-  }, 400); // debounce 400ms
-}
-
-/* ── Listen for real-time changes from Firestore ── */
-function listenForChanges() {
-  if (!docRef) return;
-  unsubscribe = docRef.onSnapshot(
-    (snap) => {
-      if (ignoreNextSnapshot) { ignoreNextSnapshot = false; return; }
-      if (snap.exists) {
-        const data = snap.data();
-        if (data.tasks) {
-          ST = data.tasks;
-          saveToLocal(); // cache locally
-          fullRefresh();
-          setSyncState('synced');
-        }
-      }
-    },
-    (err) => {
-      console.warn('Firestore listener error:', err);
-      setSyncState('offline');
-      isOnline = false;
-    }
-  );
-}
-
-/* ═══════════════════════════════════════════════
+/* ═══════════════════════════════════
    DATA
-═══════════════════════════════════════════════ */
+═══════════════════════════════════ */
 const PHASES = [
-  { id:'discovery',   label:'DISCOVERY',      status:'active'    },
-  { id:'ux',          label:'UX',             status:'pending'   },
-  { id:'ui',          label:'UI',             status:'pending'   },
-  { id:'prototype',   label:'PROTOTYPE',      status:'pending'   },
-  { id:'lock',        label:'LOCK PROTO',     status:'pending'   },
-  { id:'development', label:'DEVELOPMENT',    status:'pending'   },
-  { id:'testing',     label:'TESTING (QA)',   status:'pending'   },
-  { id:'launch',      label:'LAUNCH',         status:'pending'   },
-  { id:'maintenance', label:'MAINTENANCE',    status:'pending'   },
+  { id:'discovery',   label:'DISCOVERY',    status:'active'  },
+  { id:'ux',          label:'UX',           status:'pending' },
+  { id:'ui',          label:'UI',           status:'pending' },
+  { id:'prototype',   label:'PROTOTYPE',    status:'pending' },
+  { id:'lock',        label:'LOCK PROTO',   status:'pending' },
+  { id:'development', label:'DEVELOPMENT',  status:'pending' },
+  { id:'testing',     label:'TESTING (QA)', status:'pending' },
+  { id:'launch',      label:'LAUNCH',       status:'pending' },
+  { id:'maintenance', label:'MAINTENANCE',  status:'pending' },
 ];
 
 const SECTIONS = [
@@ -1114,9 +963,10 @@ const STATUS_CFG = {
 };
 
 /* ═══════════════════════════════════
-   STATE (localStorage + Firestore)
+   STATE
 ═══════════════════════════════════ */
 let ST = {};
+let isCloudConnected = false;
 
 function loadFromLocal() {
   try {
@@ -1130,15 +980,116 @@ function saveToLocal() {
   localStorage.setItem('birdy-ts', new Date().toISOString());
 }
 
-function saveST() {
-  saveToLocal();
-  saveToCloud(); // no-op if Firebase not enabled
-  updateTimestamp();
-}
-
 function getItem(id, def) {
   if (!ST[id]) ST[id] = { ...def };
   return ST[id];
+}
+
+/* ═══════════════════════════════════
+   CLOUD SYNC (Neon via /api/tasks)
+═══════════════════════════════════ */
+function setSyncState(state) {
+  const badge = document.getElementById('sync-badge');
+  const icon  = document.getElementById('sync-icon');
+  const text  = document.getElementById('sync-text');
+  badge.className = 'sync-badge ' + state;
+  switch (state) {
+    case 'synced':
+      icon.innerHTML = '☁️'; icon.className = 'sync-icon';
+      text.textContent = 'Synced'; break;
+    case 'saving':
+      icon.innerHTML = '↻'; icon.className = 'sync-icon sync-spin';
+      text.textContent = 'Saving…'; break;
+    case 'offline':
+      icon.innerHTML = '⚠'; icon.className = 'sync-icon';
+      text.textContent = 'Offline'; break;
+    case 'local':
+      icon.innerHTML = '💾'; icon.className = 'sync-icon';
+      text.textContent = 'Local'; break;
+  }
+}
+
+/* Load state from API */
+async function loadFromCloud() {
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    if (json.data && Object.keys(json.data).length > 0) {
+      ST = json.data;
+      saveToLocal();
+      fullRefresh();
+    } else {
+      // DB is empty — push local state up
+      await pushToCloud();
+    }
+    isCloudConnected = true;
+    setSyncState('synced');
+  } catch (err) {
+    console.warn('Cloud load failed, using localStorage:', err);
+    isCloudConnected = false;
+    setSyncState('offline');
+  }
+}
+
+/* Save state to API (debounced) */
+let saveTimer = null;
+
+function saveToCloud() {
+  if (!isCloudConnected) return;
+  clearTimeout(saveTimer);
+  setSyncState('saving');
+  saveTimer = setTimeout(() => pushToCloud(), 400);
+}
+
+async function pushToCloud() {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ data: ST }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    isCloudConnected = true;
+    setSyncState('synced');
+  } catch (err) {
+    console.warn('Cloud save failed:', err);
+    setSyncState('offline');
+  }
+}
+
+/* Poll for remote changes */
+async function pollCloud() {
+  if (!isCloudConnected) return;
+  try {
+    const res = await fetch(API_URL);
+    if (!res.ok) return;
+    const json = await res.json();
+    if (json.data && JSON.stringify(json.data) !== JSON.stringify(ST)) {
+      ST = json.data;
+      saveToLocal();
+      fullRefresh();
+      setSyncState('synced');
+    }
+  } catch (err) {
+    // silent fail on poll
+  }
+}
+
+function startPolling() {
+  stopPolling();
+  pollTimer = setInterval(pollCloud, POLL_MS);
+}
+
+function stopPolling() {
+  if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+}
+
+/* Combined save */
+function saveST() {
+  saveToLocal();
+  saveToCloud();
+  updateTimestamp();
 }
 
 /* ═══════════════════════════════════
@@ -1166,18 +1117,15 @@ function renderSections() {
 function bindSectionEvents() {
   SECTIONS.forEach(sec => {
     document.getElementById(`sh-${sec.id}`).addEventListener('click', () => toggleCollapse(sec.id));
-
     sec.groups.forEach(g => {
       g.items.forEach(item => {
-        const s = getItem(item.id, { checked: item.checked, status: item.status });
+        getItem(item.id, { checked: item.checked, status: item.status });
         const row  = document.getElementById(`tr-${item.id}`);
         const pill = document.getElementById(`tp-${item.id}`);
-
         row.addEventListener('click', (e) => {
           if (e.target === pill || pill.contains(e.target)) return;
           toggleCheck(item.id, sec.id);
         });
-
         pill.addEventListener('click', (e) => { e.stopPropagation(); cycleStatus(item.id, sec.id); });
       });
     });
@@ -1268,8 +1216,9 @@ function cycleStatus(id, secId) {
   const s = getItem(id, {});
   const i = STATUS_CYCLE.indexOf(s.status);
   s.status = STATUS_CYCLE[(i + 1) % STATUS_CYCLE.length];
-  if (s.status === 'done')    s.checked = true;
-  if (s.status === 'todo' || s.status === 'blocked') s.checked = false;
+  if (s.status === 'done')        s.checked = true;
+  if (s.status === 'todo')        s.checked = false;
+  if (s.status === 'blocked')     s.checked = false;
   if (s.status === 'in-progress') s.checked = false;
   saveST();
   patchRow(id);
@@ -1280,18 +1229,16 @@ function cycleStatus(id, secId) {
 function patchRow(id) {
   const s   = getItem(id, {});
   const cfg = STATUS_CFG[s.status] || STATUS_CFG.todo;
-
   const row  = document.getElementById(`tr-${id}`);
   const cb   = document.getElementById(`tc-${id}`);
   const pill = document.getElementById(`tp-${id}`);
-
   if (row)  row.className  = `task-row ${s.checked ? 'done' : ''}`;
   if (cb)   cb.className   = `task-cb ${s.checked ? 'on' : ''}`;
   if (pill) { pill.className = `task-pill ${cfg.cls}`; pill.textContent = cfg.label; }
 }
 
 /* ═══════════════════════════════════
-   FULL REFRESH (used when Firestore pushes new data)
+   FULL REFRESH
 ═══════════════════════════════════ */
 function fullRefresh() {
   renderSections();
@@ -1300,7 +1247,7 @@ function fullRefresh() {
 }
 
 /* ═══════════════════════════════════
-   STATS & REFRESH
+   STATS
 ═══════════════════════════════════ */
 function secStats(sec) {
   let d=0, t=0;
@@ -1317,7 +1264,7 @@ function allStats() {
   SECTIONS.forEach(sec => sec.groups.forEach(g => g.items.forEach(item => {
     const s = getItem(item.id, { checked: item.checked, status: item.status });
     t++;
-    if (s.checked)            d++;
+    if (s.checked)                d++;
     if (s.status==='in-progress') ip++;
     if (s.status==='blocked')     bl++;
   })));
@@ -1325,17 +1272,15 @@ function allStats() {
 }
 
 function refreshSection(id) {
-  const sec  = SECTIONS.find(s => s.id === id);
+  const sec = SECTIONS.find(s => s.id === id);
   if (!sec) return;
   const stats = secStats(sec);
   const pct   = stats.t ? Math.round(stats.d / stats.t * 100) : 0;
-
   const fill  = document.getElementById(`sbf-${id}`);
   const count = document.querySelector(`#sc-${id} .sc-count`);
   const mbar  = document.getElementById(`mb-${id}`);
   const mpct  = document.getElementById(`mp-${id}`);
-
-  if (fill)  fill.style.width = `${pct}%`;
+  if (fill)  fill.style.width  = `${pct}%`;
   if (count) count.textContent = `${stats.d}/${stats.t}`;
   if (mbar)  mbar.style.width  = `${pct}%`;
   if (mpct)  mpct.textContent  = `${pct}%`;
@@ -1390,13 +1335,11 @@ function renderMiniBars() {
 function refreshSidebar() {
   const s   = allStats();
   const pct = s.t ? Math.round(s.d / s.t * 100) : 0;
-
   document.getElementById('overall-pct').textContent = `${pct}%`;
   ['hs-total','qs-total'].forEach(id => document.getElementById(id).textContent = s.t);
   ['hs-done', 'qs-done' ].forEach(id => document.getElementById(id).textContent = s.d);
   ['hs-ip',   'qs-ip'   ].forEach(id => document.getElementById(id).textContent = s.ip);
   ['hs-bl',   'qs-bl'   ].forEach(id => document.getElementById(id).textContent = s.bl);
-
   if (chart) {
     chart.data.datasets[0].data = [pct, Math.max(0, 100-pct)];
     chart.update();
@@ -1425,7 +1368,7 @@ function updateTimestamp() {
 /* ═══════════════════════════════════
    INIT
 ═══════════════════════════════════ */
-function init() {
+async function init() {
   // 1. Load from localStorage first (instant paint)
   loadFromLocal();
 
@@ -1437,30 +1380,12 @@ function init() {
   refreshSidebar();
   updateDate();
 
-  // 3. Init Firebase & start listening
-  const fbOk = initFirebase();
-  if (fbOk) {
-    setSyncState('saving'); // show "connecting"
-    // Try to load initial data from Firestore
-    docRef.get().then(snap => {
-      if (snap.exists && snap.data().tasks) {
-        ST = snap.data().tasks;
-        saveToLocal();
-        fullRefresh();
-      } else {
-        // First time: push local state to Firestore
-        saveToCloud();
-      }
-      setSyncState('synced');
-      // Start real-time listener
-      listenForChanges();
-    }).catch(err => {
-      console.warn('Initial Firestore load failed:', err);
-      setSyncState('offline');
-    });
-  } else {
-    setSyncState('local');
-  }
+  // 3. Try loading from Neon cloud
+  setSyncState('saving'); // show "connecting"
+  await loadFromCloud();
+
+  // 4. Start polling for remote changes
+  if (isCloudConnected) startPolling();
 }
 
 init();

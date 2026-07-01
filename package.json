@@ -1,0 +1,9 @@
+{
+  "name": "birdy-planning",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Birdy travel agency project dashboard",
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.4"
+  }
+}
