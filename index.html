@@ -220,9 +220,11 @@
       gap: 6px;
       position: relative;
       border-bottom: 3px solid transparent;
-      cursor: default;
+      cursor: pointer;
       transition: background .2s;
+      user-select: none;
     }
+    .phase-step:hover { background: rgba(255,255,255,.04); }
 
     .phase-step.completed { border-bottom-color: var(--mint); }
     .phase-step.active    { border-bottom-color: var(--gold); }
@@ -637,6 +639,48 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     .sync-spin { animation: spin 1s linear infinite; display: inline-block; }
 
+    /* Phase advance button */
+    .phase-advance-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      padding: 12px 18px;
+      margin-top: 14px;
+      border: none;
+      border-radius: var(--r-md);
+      font-family: var(--fh);
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all .25s;
+    }
+    .phase-advance-btn.ready {
+      background: linear-gradient(135deg, var(--gold) 0%, #FF8C00 100%);
+      color: #1a0a00;
+      box-shadow: 0 4px 20px rgba(244,168,35,.4);
+    }
+    .phase-advance-btn.ready:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 28px rgba(244,168,35,.55);
+    }
+    .phase-advance-btn.not-ready {
+      background: rgba(255,255,255,.05);
+      color: var(--text-3);
+      cursor: default;
+      border: 1px solid var(--border);
+    }
+    .phase-advance-btn .btn-arrow { font-size: 14px; }
+
+    /* Completed phase card style */
+    .scard.phase-card.all-done {
+      background: linear-gradient(135deg, rgba(52,211,153,.1) 0%, rgba(52,211,153,.03) 100%);
+      border-color: rgba(52,211,153,.2);
+    }
+
     @media (max-width: 1024px) {
       .main { grid-template-columns: 1fr; padding: 20px 24px 60px; }
       .sidebar { position: static; }
@@ -701,14 +745,7 @@
   <div class="sections" id="sections"></div>
 
   <aside class="sidebar">
-    <div class="scard phase-card">
-      <div class="scard-title">Current Phase</div>
-      <div class="live-badge">
-        <div class="live-dot"></div>
-        <span class="live-txt">Discovery</span>
-      </div>
-      <p class="phase-desc">Defining product vision, principles, and project scope. Aligning all stakeholders before moving into UX strategy and architecture.</p>
-    </div>
+    <div class="scard phase-card" id="phase-card"></div>
 
     <div class="scard">
       <div class="scard-title">Overall Progress</div>
@@ -789,16 +826,29 @@ let   pollTimer = null;
    DATA
 ═══════════════════════════════════ */
 const PHASES = [
-  { id:'discovery',   label:'DISCOVERY',    status:'active'  },
-  { id:'ux',          label:'UX',           status:'pending' },
-  { id:'ui',          label:'UI',           status:'pending' },
-  { id:'prototype',   label:'PROTOTYPE',    status:'pending' },
-  { id:'lock',        label:'LOCK PROTO',   status:'pending' },
-  { id:'development', label:'DEVELOPMENT',  status:'pending' },
-  { id:'testing',     label:'TESTING (QA)', status:'pending' },
-  { id:'launch',      label:'LAUNCH',       status:'pending' },
-  { id:'maintenance', label:'MAINTENANCE',  status:'pending' },
+  { id:'discovery',   label:'DISCOVERY',    desc:'Defining product vision, principles, and project scope. Aligning all stakeholders before moving into UX strategy.' },
+  { id:'ux',          label:'UX',           desc:'Building product architecture, information architecture, user flows, and modularisation strategy.' },
+  { id:'ui',          label:'UI',           desc:'Designing screens, responsive layouts, component systems, asset libraries, and UI guidelines.' },
+  { id:'prototype',   label:'PROTOTYPE',    desc:'Creating interactive Figma prototypes for internal review and external demo.' },
+  { id:'lock',        label:'LOCK PROTO',   desc:'Finalizing and locking the prototype — no further design changes before development.' },
+  { id:'development', label:'DEVELOPMENT',  desc:'Building the web-app: frontend, backend, API integrations, payment, and security.' },
+  { id:'testing',     label:'TESTING (QA)', desc:'Quality assurance — functional testing, responsive testing, performance, and security audits.' },
+  { id:'launch',      label:'LAUNCH',       desc:'Deploying to production, DNS setup, monitoring, and go-live checklist.' },
+  { id:'maintenance', label:'MAINTENANCE',  desc:'Post-launch support, bug fixes, performance monitoring, and iterative improvements.' },
 ];
+
+/* Phase-to-section mapping: which sections belong to which phase */
+const PHASE_SECTIONS = {
+  'discovery':   ['product-strategy', 'product-roadmap'],
+  'ux':          ['line-collective'],
+  'ui':          ['ui-design'],
+  'prototype':   [],
+  'lock':        [],
+  'development': [],
+  'testing':     [],
+  'launch':      [],
+  'maintenance': [],
+};
 
 const SECTIONS = [
   {
@@ -1093,16 +1143,125 @@ function saveST() {
 }
 
 /* ═══════════════════════════════════
+   PHASE MANAGEMENT
+═══════════════════════════════════ */
+function getActivePhaseIdx() {
+  const saved = ST['__activePhase'];
+  if (typeof saved === 'number' && saved >= 0 && saved < PHASES.length) return saved;
+  return 0; // default: discovery
+}
+
+function setActivePhase(idx) {
+  if (idx < 0 || idx >= PHASES.length) return;
+  ST['__activePhase'] = idx;
+  saveST();
+  renderPhaseBar();
+  renderPhaseCard();
+}
+
+function getPhaseStatus(idx) {
+  const active = getActivePhaseIdx();
+  if (idx < active)  return 'completed';
+  if (idx === active) return 'active';
+  return 'pending';
+}
+
+function phaseTasksComplete(phaseId) {
+  const secIds = PHASE_SECTIONS[phaseId] || [];
+  if (secIds.length === 0) return true; // phases with no sections can always advance
+  for (const secId of secIds) {
+    const sec = SECTIONS.find(s => s.id === secId);
+    if (!sec) continue;
+    const stats = secStats(sec);
+    if (stats.d < stats.t) return false;
+  }
+  return true;
+}
+
+function advancePhase() {
+  const idx = getActivePhaseIdx();
+  if (idx >= PHASES.length - 1) return; // already at last phase
+  const phase = PHASES[idx];
+  if (!phaseTasksComplete(phase.id)) return;
+  setActivePhase(idx + 1);
+}
+
+/* ═══════════════════════════════════
    PHASE BAR
 ═══════════════════════════════════ */
 function renderPhaseBar() {
-  document.getElementById('phase-bar-inner').innerHTML =
-    PHASES.map((p, i) => `
-      <div class="phase-step ${p.status}">
-        <div class="phase-dot">${p.status==='completed'?'✓':i+1}</div>
-        <div class="phase-lbl">${p.label}</div>
-      </div>
-    `).join('');
+  const container = document.getElementById('phase-bar-inner');
+  container.innerHTML =
+    PHASES.map((p, i) => {
+      const status = getPhaseStatus(i);
+      return `
+        <div class="phase-step ${status}" data-phase-idx="${i}">
+          <div class="phase-dot">${status==='completed'?'✓':i+1}</div>
+          <div class="phase-lbl">${p.label}</div>
+        </div>
+      `;
+    }).join('');
+
+  // Bind click events
+  container.querySelectorAll('.phase-step').forEach(el => {
+    el.addEventListener('click', () => {
+      const idx = parseInt(el.dataset.phaseIdx);
+      const active = getActivePhaseIdx();
+      // Can only click on completed phases to go back, or click next phase if tasks are done
+      if (idx <= active) {
+        setActivePhase(idx);
+      } else if (idx === active + 1 && phaseTasksComplete(PHASES[active].id)) {
+        setActivePhase(idx);
+      }
+    });
+  });
+}
+
+/* ═══════════════════════════════════
+   PHASE CARD (Sidebar)
+═══════════════════════════════════ */
+function renderPhaseCard() {
+  const idx     = getActivePhaseIdx();
+  const phase   = PHASES[idx];
+  const secIds  = PHASE_SECTIONS[phase.id] || [];
+  const isLast  = idx >= PHASES.length - 1;
+  const allDone = phaseTasksComplete(phase.id);
+  const nextP   = !isLast ? PHASES[idx + 1] : null;
+
+  // Compute tasks done / total for this phase's sections
+  let phaseDone = 0, phaseTotal = 0;
+  secIds.forEach(secId => {
+    const sec = SECTIONS.find(s => s.id === secId);
+    if (!sec) return;
+    const st = secStats(sec);
+    phaseDone  += st.d;
+    phaseTotal += st.t;
+  });
+
+  const card = document.getElementById('phase-card');
+  card.className = `scard phase-card${allDone && !isLast ? ' all-done' : ''}`;
+
+  let btnHTML = '';
+  if (isLast) {
+    // Last phase — show completion
+    btnHTML = allDone
+      ? `<button class="phase-advance-btn ready" disabled style="cursor:default">🎉 PROJECT COMPLETE</button>`
+      : '';
+  } else if (allDone) {
+    btnHTML = `<button class="phase-advance-btn ready" onclick="advancePhase()">Advance to ${nextP.label} <span class="btn-arrow">→</span></button>`;
+  } else if (phaseTotal > 0) {
+    btnHTML = `<button class="phase-advance-btn not-ready">${phaseDone}/${phaseTotal} tasks — Complete all to advance</button>`;
+  }
+
+  card.innerHTML = `
+    <div class="scard-title">Current Phase</div>
+    <div class="live-badge">
+      <div class="live-dot"></div>
+      <span class="live-txt">${phase.label}</span>
+    </div>
+    <p class="phase-desc">${phase.desc}</p>
+    ${btnHTML}
+  `;
 }
 
 /* ═══════════════════════════════════
@@ -1241,6 +1400,8 @@ function patchRow(id) {
    FULL REFRESH
 ═══════════════════════════════════ */
 function fullRefresh() {
+  renderPhaseBar();
+  renderPhaseCard();
   renderSections();
   renderMiniBars();
   refreshSidebar();
@@ -1344,6 +1505,7 @@ function refreshSidebar() {
     chart.data.datasets[0].data = [pct, Math.max(0, 100-pct)];
     chart.update();
   }
+  renderPhaseCard(); // keep phase card in sync with task changes
 }
 
 /* ═══════════════════════════════════
@@ -1374,6 +1536,7 @@ async function init() {
 
   // 2. Render everything
   renderPhaseBar();
+  renderPhaseCard();
   renderSections();
   renderMiniBars();
   initChart();
