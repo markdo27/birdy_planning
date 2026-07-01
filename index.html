@@ -772,6 +772,7 @@
       stroke-linecap: round;
       stroke-linejoin: round;
       fill: none;
+      stroke: currentColor;
     }
     .sc-icon.c-disc svg { stroke: var(--gold); }
     .sc-icon.c-road svg { stroke: var(--mint); }
@@ -1962,7 +1963,7 @@ function buildSection(sec) {
   return `
     <div class="sc ${coll ? 'collapsed' : ''}" id="sc-${sec.id}">
       <div class="sc-header" id="sh-${sec.id}">
-        <div class="sc-icon ${sec.iconCls}">${sec.icon}</div>
+        <div class="sc-icon ${sec.iconCls}" style="color:${sec.color}; background:${sec.color}15; box-shadow:inset 0 0 0 1px ${sec.color}30;">${sec.icon}</div>
         <div class="sc-title-group">
           <div class="sc-title" style="display: flex; align-items: center; gap: 8px;">
             <span>${sec.title}</span>
