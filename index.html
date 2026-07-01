@@ -1,0 +1,1469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Birdy — Project Dashboard</title>
+  <meta name="description" content="Internal project tracking dashboard for Birdy travel agency web-app development." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base:        #06091A;
+      --bg-surface:     #0C1128;
+      --bg-card:        rgba(255,255,255,0.04);
+      --bg-card-hover:  rgba(255,255,255,0.07);
+      --border:         rgba(255,255,255,0.07);
+      --border-hover:   rgba(255,255,255,0.14);
+
+      --gold:           #F4A823;
+      --gold-lt:        #FFD166;
+      --gold-dim:       rgba(244,168,35,0.13);
+      --gold-glow:      rgba(244,168,35,0.25);
+
+      --sky:            #38BDF8;
+      --sky-dim:        rgba(56,189,248,0.11);
+
+      --mint:           #34D399;
+      --mint-dim:       rgba(52,211,153,0.11);
+
+      --violet:         #A78BFA;
+      --violet-dim:     rgba(167,139,250,0.11);
+
+      --rose:           #F43F5E;
+      --rose-dim:       rgba(244,63,94,0.11);
+
+      --amber:          #FBBF24;
+
+      --text-1:         #EDF2FF;
+      --text-2:         #7E8FA8;
+      --text-3:         #3E4D5C;
+
+      --fh:             'Outfit', sans-serif;
+      --fb:             'Inter', sans-serif;
+
+      --r-sm:  8px;
+      --r-md:  12px;
+      --r-lg:  16px;
+      --r-xl:  22px;
+      --r-2xl: 28px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--fb);
+      background: var(--bg-base);
+      color: var(--text-1);
+      min-height: 100vh;
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ─── ambient background mesh ─── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(ellipse 90% 55% at 15% -5%,  rgba(244,168,35,.07)  0%, transparent 55%),
+        radial-gradient(ellipse 65% 45% at 85% 100%, rgba(56,189,248,.05)  0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 50% 50%,  rgba(167,139,250,.03) 0%, transparent 60%);
+    }
+
+    /* ════════════════════════════════════
+       HEADER
+    ════════════════════════════════════ */
+    .header {
+      position: relative;
+      z-index: 10;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(244,168,35,.06) 0%, transparent 100%);
+    }
+
+    .header-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 32px 48px 28px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    /* brand */
+    .brand { display: flex; align-items: center; gap: 16px; }
+
+    .brand-logo {
+      width: 54px; height: 54px;
+      border-radius: 15px;
+      background: linear-gradient(135deg, #F4A823 0%, #FF6B35 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 8px 32px rgba(244,168,35,.4), 0 0 0 1px rgba(244,168,35,.25);
+      flex-shrink: 0;
+    }
+
+    .brand-name {
+      font-family: var(--fh);
+      font-size: 30px;
+      font-weight: 900;
+      letter-spacing: .1em;
+      line-height: 1;
+      background: linear-gradient(120deg, #F4A823 0%, #FFD166 50%, #F4A823 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-2);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-top: 5px;
+      font-weight: 500;
+    }
+
+    /* header stat chips */
+    .header-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: auto;
+      flex-wrap: wrap;
+    }
+
+    .hchip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 18px;
+      border-radius: var(--r-lg);
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      gap: 2px;
+      backdrop-filter: blur(8px);
+    }
+
+    .hchip-val {
+      font-family: var(--fh);
+      font-size: 20px;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .hchip-lbl {
+      font-size: 10px;
+      color: var(--text-2);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+    }
+
+    /* sync indicator */
+    .sync-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 6px 14px;
+      border-radius: 100px;
+      font-family: var(--fh);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      transition: all .3s;
+      flex-shrink: 0;
+    }
+    .sync-badge.synced   { background: var(--mint-dim);  color: var(--mint);  border: 1px solid rgba(52,211,153,.2); }
+    .sync-badge.saving   { background: var(--sky-dim);   color: var(--sky);   border: 1px solid rgba(56,189,248,.2); }
+    .sync-badge.offline  { background: var(--rose-dim);  color: var(--rose);  border: 1px solid rgba(244,63,94,.2); }
+    .sync-badge.local    { background: rgba(255,255,255,.06); color: var(--text-2); border: 1px solid var(--border); }
+
+    .sync-icon { font-size: 12px; }
+
+    /* meta */
+    .header-meta { text-align: right; }
+    .header-meta .h-date { font-size: 13px; color: var(--text-2); font-weight: 500; }
+    .header-meta .h-upd  { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+
+    /* ════════════════════════════════════
+       PHASE TIMELINE
+    ════════════════════════════════════ */
+    .phase-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(6,9,26,.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .phase-bar-inner {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 48px;
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .phase-bar-inner::-webkit-scrollbar { display: none; }
+
+    .phase-step {
+      flex: 1;
+      min-width: 90px;
+      padding: 13px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      position: relative;
+      border-bottom: 3px solid transparent;
+      cursor: default;
+      transition: background .2s;
+    }
+
+    .phase-step.completed { border-bottom-color: var(--mint); }
+    .phase-step.active    { border-bottom-color: var(--gold); }
+
+    .phase-dot {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      font-family: var(--fh);
+      transition: all .3s;
+    }
+
+    .phase-step.completed .phase-dot { background: var(--mint);  color: #032a1a; }
+    .phase-step.active    .phase-dot { background: var(--gold);  color: #1a0a00; box-shadow: 0 0 14px var(--gold-glow); }
+    .phase-step.pending   .phase-dot { background: rgba(255,255,255,.07); color: var(--text-3); }
+
+    .phase-lbl {
+      font-family: var(--fh);
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .phase-step.completed .phase-lbl { color: var(--mint); }
+    .phase-step.active    .phase-lbl { color: var(--gold); }
+    .phase-step.pending   .phase-lbl { color: var(--text-3); }
+
+    /* connector line between steps */
+    .phase-step:not(:last-child)::after {
+      content: '';
+      position: absolute;
+      right: 0; top: 50%;
+      transform: translateY(-50%);
+      width: 1px; height: 16px;
+      background: var(--border);
+    }
+
+    /* ════════════════════════════════════
+       MAIN LAYOUT
+    ════════════════════════════════════ */
+    .main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 28px 48px 80px;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ════════════════════════════════════
+       SCOPE SECTIONS
+    ════════════════════════════════════ */
+    .sections { display: flex; flex-direction: column; gap: 18px; }
+
+    .sc {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-2xl);
+      overflow: hidden;
+      transition: border-color .25s, box-shadow .25s;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .sc:hover { border-color: var(--border-hover); box-shadow: 0 8px 40px rgba(0,0,0,.35); }
+
+    /* section header */
+    .sc-header {
+      padding: 20px 26px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      cursor: pointer;
+      user-select: none;
+      border-bottom: 1px solid var(--border);
+      transition: background .2s;
+    }
+    .sc-header:hover { background: rgba(255,255,255,.025); }
+
+    .sc-icon {
+      width: 42px; height: 42px;
+      border-radius: var(--r-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 19px;
+      flex-shrink: 0;
+    }
+    .sc-icon.c-disc   { background: var(--gold-dim);   box-shadow: inset 0 0 0 1px rgba(244,168,35,.2);   }
+    .sc-icon.c-road   { background: var(--mint-dim);   box-shadow: inset 0 0 0 1px rgba(52,211,153,.2);   }
+    .sc-icon.c-ux     { background: var(--sky-dim);    box-shadow: inset 0 0 0 1px rgba(56,189,248,.2);    }
+    .sc-icon.c-ui     { background: var(--violet-dim); box-shadow: inset 0 0 0 1px rgba(167,139,250,.2);   }
+
+    .sc-title-group { flex: 1; min-width: 0; }
+    .sc-title { font-family: var(--fh); font-size: 16px; font-weight: 700; }
+    .sc-sub   { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+    .sc-meta { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+
+    .sc-count {
+      font-family: var(--fh);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .ptag {
+      font-size: 9.5px; font-weight: 700;
+      font-family: var(--fh);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 100px;
+    }
+    .ptag.t-disc   { background: var(--gold-dim);   color: var(--gold);   border: 1px solid rgba(244,168,35,.22);   }
+    .ptag.t-ux     { background: var(--sky-dim);    color: var(--sky);    border: 1px solid rgba(56,189,248,.22);    }
+    .ptag.t-ui     { background: var(--violet-dim); color: var(--violet); border: 1px solid rgba(167,139,250,.22);   }
+    .ptag.t-road   { background: var(--mint-dim);   color: var(--mint);   border: 1px solid rgba(52,211,153,.22);   }
+
+    .sc-chevron {
+      width: 28px; height: 28px;
+      border-radius: var(--r-sm);
+      background: rgba(255,255,255,.05);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .sc-chevron svg { width: 14px; height: 14px; stroke: var(--text-2); transition: transform .3s; }
+    .sc.collapsed .sc-chevron svg { transform: rotate(-90deg); }
+
+    /* progress strip */
+    .sc-bar { height: 3px; background: rgba(255,255,255,.05); }
+    .sc-bar-fill { height: 100%; border-radius: 0 3px 3px 0; transition: width .55s cubic-bezier(.4,0,.2,1); }
+
+    /* section body */
+    .sc-body { padding: 20px 26px 26px; display: flex; flex-direction: column; gap: 22px; }
+    .sc.collapsed .sc-body { display: none; }
+
+    /* ── Task Groups ── */
+    .tg-title {
+      font-family: var(--fh);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .13em;
+      color: var(--text-2);
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 8px;
+    }
+
+    .tg-badge {
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: none;
+      letter-spacing: 0;
+      font-family: var(--fb);
+      color: var(--text-3);
+      background: rgba(255,255,255,.05);
+      border-radius: 100px;
+      padding: 2px 9px;
+    }
+
+    .tg + .tg { padding-top: 20px; border-top: 1px solid var(--border); }
+
+    .task-list { display: flex; flex-direction: column; gap: 3px; }
+
+    /* ── Task Row ── */
+    .task-row {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      padding: 9px 12px;
+      border-radius: var(--r-md);
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .task-row:hover { background: rgba(255,255,255,.04); }
+
+    .task-cb {
+      width: 18px; height: 18px;
+      border-radius: 5px;
+      border: 1.5px solid rgba(255,255,255,.18);
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all .2s;
+      cursor: pointer;
+    }
+    .task-cb.on {
+      background: var(--mint);
+      border-color: var(--mint);
+      box-shadow: 0 0 10px rgba(52,211,153,.3);
+    }
+    .task-cb.on::after {
+      content: '';
+      display: block;
+      width: 10px; height: 6px;
+      border-left: 2px solid #032a1a;
+      border-bottom: 2px solid #032a1a;
+      transform: rotate(-45deg) translate(1px,-1px);
+    }
+
+    .task-lbl {
+      flex: 1;
+      font-size: 13.5px;
+      color: var(--text-1);
+      line-height: 1.45;
+      transition: color .2s;
+    }
+    .task-row.done .task-lbl {
+      color: var(--text-3);
+      text-decoration: line-through;
+      text-decoration-color: rgba(255,255,255,.18);
+    }
+
+    .task-pill {
+      font-size: 9.5px;
+      font-weight: 700;
+      font-family: var(--fh);
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 100px;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all .2s;
+    }
+    .pill-todo        { background: rgba(255,255,255,.06); color: var(--text-2); }
+    .pill-in-progress { background: var(--sky-dim);        color: var(--sky);    border: 1px solid rgba(56,189,248,.2); }
+    .pill-done        { background: var(--mint-dim);       color: var(--mint);   border: 1px solid rgba(52,211,153,.2); }
+    .pill-blocked     { background: var(--rose-dim);       color: var(--rose);   border: 1px solid rgba(244,63,94,.2);  }
+
+    /* ════════════════════════════════════
+       SIDEBAR
+    ════════════════════════════════════ */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      position: sticky;
+      top: 72px;
+      height: fit-content;
+    }
+
+    .scard {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xl);
+      padding: 22px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .scard-title {
+      font-family: var(--fh);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: var(--text-2);
+      margin-bottom: 18px;
+    }
+
+    /* current phase card */
+    .scard.phase-card {
+      background: linear-gradient(135deg, rgba(244,168,35,.1) 0%, rgba(244,168,35,.03) 100%);
+      border-color: rgba(244,168,35,.2);
+    }
+
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(244,168,35,.13);
+      border: 1px solid rgba(244,168,35,.28);
+      border-radius: 100px;
+      padding: 5px 14px;
+      margin-bottom: 12px;
+    }
+
+    .live-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity:1; transform: scale(1); }
+      50%       { opacity:.5; transform: scale(.8); }
+    }
+
+    .live-txt {
+      font-family: var(--fh);
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--gold);
+      letter-spacing: .1em;
+      text-transform: uppercase;
+    }
+
+    .phase-desc {
+      font-size: 12px;
+      color: var(--text-2);
+      line-height: 1.65;
+    }
+
+    /* donut chart */
+    .chart-wrap {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      margin: 0 auto 18px;
+    }
+
+    .chart-center {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+    }
+
+    .chart-pct {
+      font-family: var(--fh);
+      font-size: 28px;
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--gold), var(--gold-lt));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .chart-lbl { font-size: 10px; color: var(--text-3); margin-top: 3px; letter-spacing: .08em; text-transform: uppercase; }
+
+    /* section mini bars */
+    .mini-bars { display: flex; flex-direction: column; gap: 13px; }
+
+    .mbar-row {}
+    .mbar-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .mbar-name { font-size: 11.5px; font-weight: 500; color: var(--text-2); }
+    .mbar-pct  { font-family: var(--fh); font-size: 12px; font-weight: 800; color: var(--text-1); }
+
+    .mbar-track { height: 4px; background: rgba(255,255,255,.06); border-radius: 100px; overflow: hidden; }
+    .mbar-fill  { height: 100%; border-radius: 100px; transition: width .55s cubic-bezier(.4,0,.2,1); }
+
+    /* quick stats grid */
+    .qstats { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+
+    .qstat {
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      padding: 13px 14px;
+    }
+
+    .qstat-val {
+      font-family: var(--fh);
+      font-size: 26px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .qstat-lbl {
+      font-size: 9.5px;
+      color: var(--text-3);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-top: 4px;
+    }
+
+    /* roadmap items */
+    .rm-items { display: flex; flex-direction: column; gap: 10px; }
+
+    .rm-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px 14px;
+      border-radius: var(--r-md);
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--border);
+    }
+
+    .rm-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+
+    .rm-title { font-family: var(--fh); font-size: 13px; font-weight: 800; }
+    .rm-sub   { font-size: 11px; color: var(--text-2); margin-top: 2px; line-height: 1.4; }
+    .rm-tag {
+      display: inline-block;
+      margin-top: 6px;
+      font-size: 9.5px; font-weight: 700;
+      font-family: var(--fh);
+      letter-spacing: .07em;
+      padding: 2px 9px;
+      border-radius: 100px;
+    }
+
+    /* ════════════════════════════════════
+       FOOTER
+    ════════════════════════════════════ */
+    footer {
+      text-align: center;
+      padding: 20px 48px;
+      font-size: 12px;
+      color: var(--text-3);
+      border-top: 1px solid var(--border);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ════════════════════════════════════
+       MISC
+    ════════════════════════════════════ */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.1); border-radius: 3px; }
+
+    @keyframes fadeUp {
+      from { opacity:0; transform: translateY(18px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+
+    .sc { animation: fadeUp .4s ease backwards; }
+    .sc:nth-child(1) { animation-delay: .04s; }
+    .sc:nth-child(2) { animation-delay: .09s; }
+    .sc:nth-child(3) { animation-delay: .14s; }
+    .sc:nth-child(4) { animation-delay: .19s; }
+
+    .sidebar > * { animation: fadeUp .4s ease backwards; }
+    .sidebar > *:nth-child(1) { animation-delay: .07s; }
+    .sidebar > *:nth-child(2) { animation-delay: .12s; }
+    .sidebar > *:nth-child(3) { animation-delay: .17s; }
+    .sidebar > *:nth-child(4) { animation-delay: .22s; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .sync-spin { animation: spin 1s linear infinite; display: inline-block; }
+
+    @media (max-width: 1024px) {
+      .main { grid-template-columns: 1fr; padding: 20px 24px 60px; }
+      .sidebar { position: static; }
+      .header-inner { padding: 24px; }
+      .phase-bar-inner { padding: 0 24px; }
+    }
+
+    @media (max-width: 640px) {
+      .header-inner { flex-direction: column; align-items: flex-start; gap: 16px; }
+      .header-meta  { text-align: left; }
+      .header-chips { margin-left: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<header class="header">
+  <div class="header-inner">
+    <div class="brand">
+      <div class="brand-logo">🐦</div>
+      <div>
+        <div class="brand-name">BIRDY</div>
+        <div class="brand-sub">Travel Agency · Web-App Project Tracker</div>
+      </div>
+    </div>
+
+    <div class="header-chips">
+      <div class="hchip">
+        <span class="hchip-val" id="hs-total">0</span>
+        <span class="hchip-lbl">Total</span>
+      </div>
+      <div class="hchip">
+        <span class="hchip-val" id="hs-done" style="color:var(--mint)">0</span>
+        <span class="hchip-lbl">Done</span>
+      </div>
+      <div class="hchip">
+        <span class="hchip-val" id="hs-ip" style="color:var(--sky)">0</span>
+        <span class="hchip-lbl">In Progress</span>
+      </div>
+      <div class="hchip">
+        <span class="hchip-val" id="hs-bl" style="color:var(--rose)">0</span>
+        <span class="hchip-lbl">Blocked</span>
+      </div>
+      <div class="sync-badge local" id="sync-badge">
+        <span class="sync-icon" id="sync-icon">💾</span>
+        <span id="sync-text">Local</span>
+      </div>
+    </div>
+
+    <div class="header-meta">
+      <div class="h-date" id="hdate"></div>
+      <div class="h-upd"  id="hupd"></div>
+    </div>
+  </div>
+</header>
+
+<!-- ─── PHASE TIMELINE ─── -->
+<nav class="phase-bar">
+  <div class="phase-bar-inner" id="phase-bar-inner"></div>
+</nav>
+
+<!-- ─── MAIN ─── -->
+<main class="main">
+  <!-- left: scope sections -->
+  <div class="sections" id="sections"></div>
+
+  <!-- right: sidebar -->
+  <aside class="sidebar">
+
+    <!-- Current Phase -->
+    <div class="scard phase-card">
+      <div class="scard-title">Current Phase</div>
+      <div class="live-badge">
+        <div class="live-dot"></div>
+        <span class="live-txt">Discovery</span>
+      </div>
+      <p class="phase-desc">Defining product vision, principles, and project scope. Aligning all stakeholders before moving into UX strategy and architecture.</p>
+    </div>
+
+    <!-- Overall Progress -->
+    <div class="scard">
+      <div class="scard-title">Overall Progress</div>
+      <div class="chart-wrap">
+        <canvas id="prog-chart"></canvas>
+        <div class="chart-center">
+          <div class="chart-pct" id="overall-pct">0%</div>
+          <div class="chart-lbl">Complete</div>
+        </div>
+      </div>
+      <div class="mini-bars" id="mini-bars"></div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="scard">
+      <div class="scard-title">Task Breakdown</div>
+      <div class="qstats">
+        <div class="qstat">
+          <div class="qstat-val" id="qs-total" style="color:var(--text-1)">0</div>
+          <div class="qstat-lbl">Total Tasks</div>
+        </div>
+        <div class="qstat">
+          <div class="qstat-val" id="qs-done" style="color:var(--mint)">0</div>
+          <div class="qstat-lbl">Done</div>
+        </div>
+        <div class="qstat">
+          <div class="qstat-val" id="qs-ip" style="color:var(--sky)">0</div>
+          <div class="qstat-lbl">In Progress</div>
+        </div>
+        <div class="qstat">
+          <div class="qstat-val" id="qs-bl" style="color:var(--rose)">0</div>
+          <div class="qstat-lbl">Blocked</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Roadmap -->
+    <div class="scard">
+      <div class="scard-title">Product Roadmap</div>
+      <div class="rm-items">
+        <div class="rm-item">
+          <div class="rm-dot" style="background:var(--gold)"></div>
+          <div>
+            <div class="rm-title">V1.0 — Phase 1</div>
+            <div class="rm-sub">Prototype → Demo → External Test → API Connection</div>
+            <div class="rm-tag" style="background:var(--gold-dim);color:var(--gold)">50–70% Functionality</div>
+          </div>
+        </div>
+        <div class="rm-item">
+          <div class="rm-dot" style="background:var(--text-3)"></div>
+          <div>
+            <div class="rm-title" style="color:var(--text-2)">V1.1 — Phase 2</div>
+            <div class="rm-sub">Full UX & UI + Tech Team Integration</div>
+            <div class="rm-tag" style="background:rgba(255,255,255,.05);color:var(--text-3)">100% Functionality</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </aside>
+</main>
+
+<footer>
+  Birdy Project Dashboard · Line Collective × Birdy Travel Agency · <span id="fy"></span>
+</footer>
+
+<!-- ═══════════════════════════════════════════════
+     FIREBASE SDK (compat v9 — CDN bundle)
+═══════════════════════════════════════════════ -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════
+   🔧  FIREBASE CONFIG — PASTE YOUR VALUES HERE
+   ═══════════════════════════════════════════════
+   Go to Firebase Console → Project Settings → Your apps (Web)
+   Copy the config object and replace the placeholder values below.
+   Set FIREBASE_ENABLED = true once you've filled in the config.
+*/
+const FIREBASE_ENABLED = false; // ← Set to true after adding your config
+
+const firebaseConfig = {
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_PROJECT.firebaseapp.com",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId:             "YOUR_APP_ID"
+};
+
+/* ── Firestore document path ── */
+const FS_COLLECTION = 'dashboards';
+const FS_DOC_ID     = 'birdy-main';
+
+/* ═══════════════════════════════════════════════
+   FIREBASE INIT
+═══════════════════════════════════════════════ */
+let db = null;
+let docRef = null;
+let unsubscribe = null;
+let isOnline = false;
+let ignoreNextSnapshot = false; // prevent echo from our own writes
+
+function initFirebase() {
+  if (!FIREBASE_ENABLED) return false;
+  try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    docRef = db.collection(FS_COLLECTION).doc(FS_DOC_ID);
+    isOnline = true;
+    return true;
+  } catch (e) {
+    console.warn('Firebase init failed, falling back to localStorage:', e);
+    return false;
+  }
+}
+
+/* ── Sync Badge UI ── */
+function setSyncState(state) {
+  const badge = document.getElementById('sync-badge');
+  const icon  = document.getElementById('sync-icon');
+  const text  = document.getElementById('sync-text');
+  badge.className = 'sync-badge ' + state;
+  switch (state) {
+    case 'synced':
+      icon.innerHTML = '☁️'; icon.className = 'sync-icon';
+      text.textContent = 'Synced'; break;
+    case 'saving':
+      icon.innerHTML = '↻'; icon.className = 'sync-icon sync-spin';
+      text.textContent = 'Saving…'; break;
+    case 'offline':
+      icon.innerHTML = '⚠'; icon.className = 'sync-icon';
+      text.textContent = 'Offline'; break;
+    case 'local':
+      icon.innerHTML = '💾'; icon.className = 'sync-icon';
+      text.textContent = 'Local'; break;
+  }
+}
+
+/* ── Write to Firestore with debounce ── */
+let saveTimer = null;
+
+function saveToCloud() {
+  if (!isOnline || !docRef) return;
+  clearTimeout(saveTimer);
+  setSyncState('saving');
+
+  saveTimer = setTimeout(() => {
+    ignoreNextSnapshot = true;
+    docRef.set({
+      tasks: ST,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }).then(() => {
+      setSyncState('synced');
+    }).catch(err => {
+      console.warn('Firestore write error:', err);
+      setSyncState('offline');
+      isOnline = false;
+    });
+  }, 400); // debounce 400ms
+}
+
+/* ── Listen for real-time changes from Firestore ── */
+function listenForChanges() {
+  if (!docRef) return;
+  unsubscribe = docRef.onSnapshot(
+    (snap) => {
+      if (ignoreNextSnapshot) { ignoreNextSnapshot = false; return; }
+      if (snap.exists) {
+        const data = snap.data();
+        if (data.tasks) {
+          ST = data.tasks;
+          saveToLocal(); // cache locally
+          fullRefresh();
+          setSyncState('synced');
+        }
+      }
+    },
+    (err) => {
+      console.warn('Firestore listener error:', err);
+      setSyncState('offline');
+      isOnline = false;
+    }
+  );
+}
+
+/* ═══════════════════════════════════════════════
+   DATA
+═══════════════════════════════════════════════ */
+const PHASES = [
+  { id:'discovery',   label:'DISCOVERY',      status:'active'    },
+  { id:'ux',          label:'UX',             status:'pending'   },
+  { id:'ui',          label:'UI',             status:'pending'   },
+  { id:'prototype',   label:'PROTOTYPE',      status:'pending'   },
+  { id:'lock',        label:'LOCK PROTO',     status:'pending'   },
+  { id:'development', label:'DEVELOPMENT',    status:'pending'   },
+  { id:'testing',     label:'TESTING (QA)',   status:'pending'   },
+  { id:'launch',      label:'LAUNCH',         status:'pending'   },
+  { id:'maintenance', label:'MAINTENANCE',    status:'pending'   },
+];
+
+const SECTIONS = [
+  {
+    id:'product-strategy',
+    title:'Product Strategy',
+    sub:'Direction To Define The Output',
+    phase:'discovery', phaseTag:'t-disc', icon:'🧭', iconCls:'c-disc',
+    color:'#F4A823',
+    groups:[
+      {
+        id:'define-vision', title:'Define Product Vision',
+        items:[
+          { id:'ps-1', label:'Understand Founder Vision',  checked:false, status:'todo' },
+          { id:'ps-2', label:'Build Product Vision',        checked:false, status:'todo' },
+          { id:'ps-3', label:'Build Product Principles',    checked:false, status:'todo' },
+          { id:'ps-4', label:'Define Value Proposition',    checked:false, status:'todo' },
+          { id:'ps-5', label:'Product Positioning',         checked:true,  status:'done' },
+        ]
+      },
+      {
+        id:'dev-planning', title:'Development Planning', badge:'Project Directing Scope',
+        items:[
+          { id:'dp-1', label:'Sprint Review',    checked:false, status:'todo' },
+          { id:'dp-2', label:'Milestone Review', checked:false, status:'todo' },
+          { id:'dp-3', label:'Timeline Review',  checked:false, status:'todo' },
+          { id:'dp-4', label:'Risk Review',      checked:false, status:'todo' },
+        ]
+      },
+      {
+        id:'proj-mgmt', title:'Project Management',
+        items:[
+          { id:'pm-1', label:'Breakdown Task',    checked:false, status:'todo' },
+          { id:'pm-2', label:'Estimate',          checked:false, status:'todo' },
+          { id:'pm-3', label:'Resource Planning', checked:false, status:'todo' },
+          { id:'pm-4', label:'Progress Update',   checked:false, status:'todo' },
+          { id:'pm-5', label:'Issue Tracking',    checked:false, status:'todo' },
+          { id:'pm-6', label:'Blocker Tracking',  checked:false, status:'todo' },
+        ]
+      },
+    ]
+  },
+  {
+    id:'product-roadmap',
+    title:'Product Roadmap',
+    sub:'Phase Planning & Version Control',
+    phase:'discovery', phaseTag:'t-road', icon:'🗺️', iconCls:'c-road',
+    color:'#34D399',
+    groups:[
+      {
+        id:'v10', title:'V1.0 — Phase 1', badge:'50–70% Functionality',
+        items:[
+          { id:'pr-1', label:'Web-App 1.0 — Prototype Internal (Figma Mockup Flow Check)',   checked:false, status:'todo' },
+          { id:'pr-2', label:'Web-App 1.1 — External Demo (Mockup Flow Check)',               checked:false, status:'todo' },
+          { id:'pr-3', label:'Web-App 1.2 — External Test Product (Responsive)',              checked:false, status:'todo' },
+          { id:'pr-4', label:'Web-App 1.2 — External Test Launching + API Connection',        checked:false, status:'todo' },
+        ]
+      },
+      {
+        id:'v11', title:'V1.1 — Phase 2', badge:'100% Functionality',
+        items:[
+          { id:'pr-5', label:'Full UX & UI for Complete Pro-Vision of Web-App', checked:false, status:'todo' },
+          { id:'pr-6', label:'Tech Team — Development & Timeline Allocation',   checked:false, status:'todo' },
+        ]
+      },
+    ]
+  },
+  {
+    id:'line-collective',
+    title:'Line Collective Scope',
+    sub:'Project Directing & UX/UI',
+    phase:'ux', phaseTag:'t-ux', icon:'✏️', iconCls:'c-ux',
+    color:'#38BDF8',
+    groups:[
+      {
+        id:'prod-consulting', title:'Product Consulting',
+        items:[
+          { id:'lc-1', label:'Weekly Product Consulting',  checked:false, status:'todo' },
+          { id:'lc-2', label:'Feature Consulting',         checked:false, status:'todo' },
+          { id:'lc-3', label:'Product Review',             checked:false, status:'todo' },
+          { id:'lc-4', label:'UX Direction',               checked:false, status:'todo' },
+          { id:'lc-5', label:'Business Decision Support',  checked:false, status:'todo' },
+        ]
+      },
+      {
+        id:'ux-strategy', title:'UX Strategy',
+        items:[
+          { id:'ux-1', label:'Product Architecture',     checked:false, status:'todo' },
+          { id:'ux-2', label:'Information Architecture', checked:false, status:'todo' },
+          { id:'ux-3', label:'Sitemap',                  checked:false, status:'todo' },
+          { id:'ux-4', label:'Module Architecture',      checked:false, status:'todo' },
+          { id:'ux-5', label:'Feature Relationship',     checked:false, status:'todo' },
+        ]
+      },
+      {
+        id:'modularisation', title:'Product Modularisation',
+        items:[
+          { id:'md-1', label:'Module Priority',              checked:false, status:'todo' },
+          { id:'md-2', label:'Dependency Mapping',           checked:false, status:'todo' },
+          { id:'md-3', label:'Future Module Planning',       checked:false, status:'todo' },
+          { id:'md-4', label:'Internal Handover Structure',  checked:false, status:'todo' },
+        ]
+      },
+      {
+        id:'user-experience', title:'User Experience',
+        items:[
+          { id:'ue-1', label:'User Journey',     checked:false, status:'todo' },
+          { id:'ue-2', label:'User Flow',        checked:false, status:'todo' },
+          { id:'ue-3', label:'Navigation Logic', checked:false, status:'todo' },
+          { id:'ue-4', label:'Entry Point',      checked:false, status:'todo' },
+          { id:'ue-5', label:'Conversion Flow',  checked:false, status:'todo' },
+        ]
+      },
+    ]
+  },
+  {
+    id:'ui-design',
+    title:'UI Design Scope',
+    sub:'Visual Design & Asset System',
+    phase:'ui', phaseTag:'t-ui', icon:'🎨', iconCls:'c-ui',
+    color:'#A78BFA',
+    groups:[
+      {
+        id:'product-ui', title:'Product UI',
+        items:[
+          { id:'ui-1', label:'Screen Design', checked:false, status:'todo' },
+          { id:'ui-2', label:'Desktop',       checked:false, status:'todo' },
+          { id:'ui-3', label:'Mobile',        checked:false, status:'todo' },
+          { id:'ui-4', label:'Responsive',    checked:false, status:'todo' },
+          { id:'ui-5', label:'States',        checked:false, status:'todo' },
+          { id:'ui-6', label:'UI Kit',        checked:false, status:'todo' },
+          { id:'ui-7', label:'Button System', checked:false, status:'todo' },
+          { id:'ui-8', label:'Box System',    checked:false, status:'todo' },
+          { id:'ui-9', label:'Card System',   checked:false, status:'todo' },
+        ]
+      },
+      {
+        id:'asset-system', title:'Asset System',
+        items:[
+          { id:'as-1', label:'Illustration System', checked:false, status:'todo' },
+          { id:'as-2', label:'Icon System',          checked:false, status:'todo' },
+          { id:'as-3', label:'Photography',          checked:false, status:'todo' },
+          { id:'as-4', label:'Empty State',          checked:false, status:'todo' },
+          { id:'as-5', label:'Loading State',        checked:false, status:'todo' },
+        ]
+      },
+      {
+        id:'guideline', title:'UI Guideline Document',
+        items:[
+          { id:'gl-1', label:'UI Guideline Document', checked:false, status:'todo' },
+        ]
+      },
+    ]
+  },
+];
+
+const STATUS_CYCLE = ['todo','in-progress','done','blocked'];
+const STATUS_CFG = {
+  'todo':        { label:'To Do',       cls:'pill-todo'        },
+  'in-progress': { label:'In Progress', cls:'pill-in-progress' },
+  'done':        { label:'Done',        cls:'pill-done'        },
+  'blocked':     { label:'Blocked',     cls:'pill-blocked'     },
+};
+
+/* ═══════════════════════════════════
+   STATE (localStorage + Firestore)
+═══════════════════════════════════ */
+let ST = {};
+
+function loadFromLocal() {
+  try {
+    const s = localStorage.getItem('birdy-v2');
+    if (s) ST = JSON.parse(s);
+  } catch(e){}
+}
+
+function saveToLocal() {
+  localStorage.setItem('birdy-v2', JSON.stringify(ST));
+  localStorage.setItem('birdy-ts', new Date().toISOString());
+}
+
+function saveST() {
+  saveToLocal();
+  saveToCloud(); // no-op if Firebase not enabled
+  updateTimestamp();
+}
+
+function getItem(id, def) {
+  if (!ST[id]) ST[id] = { ...def };
+  return ST[id];
+}
+
+/* ═══════════════════════════════════
+   PHASE BAR
+═══════════════════════════════════ */
+function renderPhaseBar() {
+  document.getElementById('phase-bar-inner').innerHTML =
+    PHASES.map((p, i) => `
+      <div class="phase-step ${p.status}">
+        <div class="phase-dot">${p.status==='completed'?'✓':i+1}</div>
+        <div class="phase-lbl">${p.label}</div>
+      </div>
+    `).join('');
+}
+
+/* ═══════════════════════════════════
+   SECTIONS
+═══════════════════════════════════ */
+function renderSections() {
+  const root = document.getElementById('sections');
+  root.innerHTML = SECTIONS.map(s => buildSection(s)).join('');
+  bindSectionEvents();
+}
+
+function bindSectionEvents() {
+  SECTIONS.forEach(sec => {
+    document.getElementById(`sh-${sec.id}`).addEventListener('click', () => toggleCollapse(sec.id));
+
+    sec.groups.forEach(g => {
+      g.items.forEach(item => {
+        const s = getItem(item.id, { checked: item.checked, status: item.status });
+        const row  = document.getElementById(`tr-${item.id}`);
+        const pill = document.getElementById(`tp-${item.id}`);
+
+        row.addEventListener('click', (e) => {
+          if (e.target === pill || pill.contains(e.target)) return;
+          toggleCheck(item.id, sec.id);
+        });
+
+        pill.addEventListener('click', (e) => { e.stopPropagation(); cycleStatus(item.id, sec.id); });
+      });
+    });
+  });
+}
+
+function buildSection(sec) {
+  const stats = secStats(sec);
+  const pct   = stats.t ? Math.round(stats.d / stats.t * 100) : 0;
+  const coll  = ST[`col-${sec.id}`] || false;
+
+  return `
+    <div class="sc ${coll ? 'collapsed' : ''}" id="sc-${sec.id}">
+      <div class="sc-header" id="sh-${sec.id}">
+        <div class="sc-icon ${sec.iconCls}">${sec.icon}</div>
+        <div class="sc-title-group">
+          <div class="sc-title">${sec.title}</div>
+          <div class="sc-sub">${sec.sub}</div>
+        </div>
+        <div class="sc-meta">
+          <span class="ptag ${sec.phaseTag}">${sec.phase.toUpperCase()}</span>
+          <span class="sc-count" style="color:${sec.color}">${stats.d}/${stats.t}</span>
+          <div class="sc-chevron">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </div>
+      </div>
+      <div class="sc-bar">
+        <div class="sc-bar-fill" id="sbf-${sec.id}" style="width:${pct}%;background:${sec.color}"></div>
+      </div>
+      <div class="sc-body">
+        ${sec.groups.map(g => buildGroup(g)).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function buildGroup(g) {
+  return `
+    <div class="tg" id="tg-${g.id}">
+      <div class="tg-title">
+        ${g.title}
+        ${g.badge ? `<span class="tg-badge">${g.badge}</span>` : ''}
+      </div>
+      <div class="task-list">
+        ${g.items.map(i => buildTaskRow(i)).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function buildTaskRow(item) {
+  const s   = getItem(item.id, { checked: item.checked, status: item.status });
+  const cfg = STATUS_CFG[s.status] || STATUS_CFG.todo;
+  return `
+    <div class="task-row ${s.checked ? 'done' : ''}" id="tr-${item.id}">
+      <div class="task-cb ${s.checked ? 'on' : ''}" id="tc-${item.id}"></div>
+      <span class="task-lbl">${item.label}</span>
+      <div class="task-pill ${cfg.cls}" id="tp-${item.id}">${cfg.label}</div>
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════
+   ACTIONS
+═══════════════════════════════════ */
+function toggleCollapse(id) {
+  const el = document.getElementById(`sc-${id}`);
+  el.classList.toggle('collapsed');
+  ST[`col-${id}`] = el.classList.contains('collapsed');
+  saveST();
+}
+
+function toggleCheck(id, secId) {
+  const s = getItem(id, {});
+  s.checked = !s.checked;
+  if (s.checked && s.status === 'todo')  s.status = 'done';
+  if (!s.checked && s.status === 'done') s.status = 'todo';
+  saveST();
+  patchRow(id);
+  refreshSection(secId);
+  refreshSidebar();
+}
+
+function cycleStatus(id, secId) {
+  const s = getItem(id, {});
+  const i = STATUS_CYCLE.indexOf(s.status);
+  s.status = STATUS_CYCLE[(i + 1) % STATUS_CYCLE.length];
+  if (s.status === 'done')    s.checked = true;
+  if (s.status === 'todo' || s.status === 'blocked') s.checked = false;
+  if (s.status === 'in-progress') s.checked = false;
+  saveST();
+  patchRow(id);
+  refreshSection(secId);
+  refreshSidebar();
+}
+
+function patchRow(id) {
+  const s   = getItem(id, {});
+  const cfg = STATUS_CFG[s.status] || STATUS_CFG.todo;
+
+  const row  = document.getElementById(`tr-${id}`);
+  const cb   = document.getElementById(`tc-${id}`);
+  const pill = document.getElementById(`tp-${id}`);
+
+  if (row)  row.className  = `task-row ${s.checked ? 'done' : ''}`;
+  if (cb)   cb.className   = `task-cb ${s.checked ? 'on' : ''}`;
+  if (pill) { pill.className = `task-pill ${cfg.cls}`; pill.textContent = cfg.label; }
+}
+
+/* ═══════════════════════════════════
+   FULL REFRESH (used when Firestore pushes new data)
+═══════════════════════════════════ */
+function fullRefresh() {
+  renderSections();
+  renderMiniBars();
+  refreshSidebar();
+}
+
+/* ═══════════════════════════════════
+   STATS & REFRESH
+═══════════════════════════════════ */
+function secStats(sec) {
+  let d=0, t=0;
+  sec.groups.forEach(g => g.items.forEach(item => {
+    const s = getItem(item.id, { checked: item.checked, status: item.status });
+    t++;
+    if (s.checked) d++;
+  }));
+  return { d, t };
+}
+
+function allStats() {
+  let t=0,d=0,ip=0,bl=0;
+  SECTIONS.forEach(sec => sec.groups.forEach(g => g.items.forEach(item => {
+    const s = getItem(item.id, { checked: item.checked, status: item.status });
+    t++;
+    if (s.checked)            d++;
+    if (s.status==='in-progress') ip++;
+    if (s.status==='blocked')     bl++;
+  })));
+  return { t,d,ip,bl };
+}
+
+function refreshSection(id) {
+  const sec  = SECTIONS.find(s => s.id === id);
+  if (!sec) return;
+  const stats = secStats(sec);
+  const pct   = stats.t ? Math.round(stats.d / stats.t * 100) : 0;
+
+  const fill  = document.getElementById(`sbf-${id}`);
+  const count = document.querySelector(`#sc-${id} .sc-count`);
+  const mbar  = document.getElementById(`mb-${id}`);
+  const mpct  = document.getElementById(`mp-${id}`);
+
+  if (fill)  fill.style.width = `${pct}%`;
+  if (count) count.textContent = `${stats.d}/${stats.t}`;
+  if (mbar)  mbar.style.width  = `${pct}%`;
+  if (mpct)  mpct.textContent  = `${pct}%`;
+}
+
+/* ═══════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════ */
+let chart = null;
+
+function initChart() {
+  const ctx = document.getElementById('prog-chart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      datasets:[{
+        data: [0, 100],
+        backgroundColor: ['#F4A823', 'rgba(255,255,255,0.05)'],
+        borderColor:     ['#F4A823', 'rgba(255,255,255,0.05)'],
+        borderWidth: 1,
+        hoverOffset: 0,
+      }]
+    },
+    options: {
+      cutout: '73%',
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: { legend:{display:false}, tooltip:{enabled:false} },
+      animation: { duration:700, easing:'easeInOutQuart' },
+    }
+  });
+}
+
+function renderMiniBars() {
+  document.getElementById('mini-bars').innerHTML = SECTIONS.map(sec => {
+    const stats = secStats(sec);
+    const pct   = stats.t ? Math.round(stats.d / stats.t * 100) : 0;
+    return `
+      <div class="mbar-row">
+        <div class="mbar-head">
+          <span class="mbar-name">${sec.title}</span>
+          <span class="mbar-pct" id="mp-${sec.id}">${pct}%</span>
+        </div>
+        <div class="mbar-track">
+          <div class="mbar-fill" id="mb-${sec.id}" style="width:${pct}%;background:${sec.color}"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function refreshSidebar() {
+  const s   = allStats();
+  const pct = s.t ? Math.round(s.d / s.t * 100) : 0;
+
+  document.getElementById('overall-pct').textContent = `${pct}%`;
+  ['hs-total','qs-total'].forEach(id => document.getElementById(id).textContent = s.t);
+  ['hs-done', 'qs-done' ].forEach(id => document.getElementById(id).textContent = s.d);
+  ['hs-ip',   'qs-ip'   ].forEach(id => document.getElementById(id).textContent = s.ip);
+  ['hs-bl',   'qs-bl'   ].forEach(id => document.getElementById(id).textContent = s.bl);
+
+  if (chart) {
+    chart.data.datasets[0].data = [pct, Math.max(0, 100-pct)];
+    chart.update();
+  }
+}
+
+/* ═══════════════════════════════════
+   DATES
+═══════════════════════════════════ */
+function updateDate() {
+  const now = new Date();
+  document.getElementById('hdate').textContent = now.toLocaleDateString('en-US', {
+    weekday:'long', year:'numeric', month:'long', day:'numeric'
+  });
+  document.getElementById('fy').textContent = now.getFullYear();
+  updateTimestamp();
+}
+
+function updateTimestamp() {
+  const ts = localStorage.getItem('birdy-ts');
+  document.getElementById('hupd').textContent = ts
+    ? `Last updated: ${new Date(ts).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}`
+    : 'No changes recorded yet';
+}
+
+/* ═══════════════════════════════════
+   INIT
+═══════════════════════════════════ */
+function init() {
+  // 1. Load from localStorage first (instant paint)
+  loadFromLocal();
+
+  // 2. Render everything
+  renderPhaseBar();
+  renderSections();
+  renderMiniBars();
+  initChart();
+  refreshSidebar();
+  updateDate();
+
+  // 3. Init Firebase & start listening
+  const fbOk = initFirebase();
+  if (fbOk) {
+    setSyncState('saving'); // show "connecting"
+    // Try to load initial data from Firestore
+    docRef.get().then(snap => {
+      if (snap.exists && snap.data().tasks) {
+        ST = snap.data().tasks;
+        saveToLocal();
+        fullRefresh();
+      } else {
+        // First time: push local state to Firestore
+        saveToCloud();
+      }
+      setSyncState('synced');
+      // Start real-time listener
+      listenForChanges();
+    }).catch(err => {
+      console.warn('Initial Firestore load failed:', err);
+      setSyncState('offline');
+    });
+  } else {
+    setSyncState('local');
+  }
+}
+
+init();
+</script>
+</body>
+</html>
