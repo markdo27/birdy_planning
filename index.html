@@ -12,35 +12,37 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg-base:        #06091A;
-      --bg-surface:     #0C1128;
-      --bg-card:        rgba(255,255,255,0.04);
-      --bg-card-hover:  rgba(255,255,255,0.07);
-      --border:         rgba(255,255,255,0.07);
-      --border-hover:   rgba(255,255,255,0.14);
+      /* Dark mode (default) styling tokens */
+      --bg-base:        #080A16;
+      --bg-surface:     #0E1122;
+      --bg-card:        rgba(255,255,255,0.035);
+      --bg-card-hover:  rgba(255,255,255,0.06);
+      --border:         rgba(255,255,255,0.06);
+      --border-hover:   rgba(255,255,255,0.12);
+      --shadow:         rgba(0, 0, 0, 0.35);
 
       --gold:           #F4A823;
       --gold-lt:        #FFD166;
-      --gold-dim:       rgba(244,168,35,0.13);
-      --gold-glow:      rgba(244,168,35,0.25);
+      --gold-dim:       rgba(244,168,35,0.08);
+      --gold-glow:      rgba(244,168,35,0.18);
 
       --sky:            #38BDF8;
-      --sky-dim:        rgba(56,189,248,0.11);
+      --sky-dim:        rgba(56,189,248,0.08);
 
       --mint:           #34D399;
-      --mint-dim:       rgba(52,211,153,0.11);
+      --mint-dim:       rgba(52,211,153,0.08);
 
       --violet:         #A78BFA;
-      --violet-dim:     rgba(167,139,250,0.11);
+      --violet-dim:     rgba(167,139,250,0.08);
 
       --rose:           #F43F5E;
-      --rose-dim:       rgba(244,63,94,0.11);
+      --rose-dim:       rgba(244,63,94,0.08);
 
       --amber:          #FBBF24;
 
-      --text-1:         #EDF2FF;
-      --text-2:         #7E8FA8;
-      --text-3:         #5A6B7D;
+      --text-1:         #F8FAFC;
+      --text-2:         #94A3B8;
+      --text-3:         #64748B;
 
       --fh:             'Outfit', sans-serif;
       --fb:             'Inter', sans-serif;
@@ -50,6 +52,27 @@
       --r-lg:  16px;
       --r-xl:  22px;
       --r-2xl: 28px;
+    }
+
+    body.light-theme {
+      /* Light mode styling tokens */
+      --bg-base:        #F8FAFC;
+      --bg-surface:     #FFFFFF;
+      --bg-card:        rgba(0,0,0,0.02);
+      --bg-card-hover:  rgba(0,0,0,0.04);
+      --border:         rgba(15, 23, 42, 0.08);
+      --border-hover:   rgba(15, 23, 42, 0.14);
+      --shadow:         rgba(15, 23, 42, 0.05);
+
+      --text-1:         #0F172A;
+      --text-2:         #475569;
+      --text-3:         #94A3B8;
+
+      --gold-dim:       rgba(244,168,35,0.1);
+      --sky-dim:        rgba(56,189,248,0.1);
+      --mint-dim:       rgba(52,211,153,0.1);
+      --violet-dim:     rgba(167,139,250,0.1);
+      --rose-dim:       rgba(244,63,94,0.1);
     }
 
     html { scroll-behavior: smooth; }
@@ -70,9 +93,16 @@
       pointer-events: none;
       z-index: 0;
       background:
-        radial-gradient(ellipse 90% 55% at 15% -5%,  rgba(244,168,35,.07)  0%, transparent 55%),
-        radial-gradient(ellipse 65% 45% at 85% 100%, rgba(56,189,248,.05)  0%, transparent 55%),
-        radial-gradient(ellipse 50% 40% at 50% 50%,  rgba(167,139,250,.03) 0%, transparent 60%);
+        radial-gradient(ellipse 90% 55% at 15% -5%,  rgba(244,168,35,.06)  0%, transparent 55%),
+        radial-gradient(ellipse 65% 45% at 85% 100%, rgba(56,189,248,.04)  0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 50% 50%,  rgba(167,139,250,.02) 0%, transparent 60%);
+    }
+
+    body.light-theme::before {
+      background:
+        radial-gradient(ellipse 90% 55% at 15% -5%,  rgba(244,168,35,.02)  0%, transparent 55%),
+        radial-gradient(ellipse 65% 45% at 85% 100%, rgba(56,189,248,.015) 0%, transparent 55%),
+        radial-gradient(ellipse 50% 40% at 50% 50%,  rgba(167,139,250,.008) 0%, transparent 60%);
     }
 
     /* ════════════════════════════════════
@@ -182,6 +212,30 @@
     .sync-badge.local    { background: rgba(255,255,255,.06); color: var(--text-2); border: 1px solid var(--border); }
 
     .sync-icon { font-size: 12px; }
+
+    .theme-toggle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-2);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .2s;
+      outline: none;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      margin-left: 4px;
+    }
+    .theme-toggle:hover {
+      border-color: var(--border-hover);
+      color: var(--text-1);
+      background: var(--bg-card-hover);
+      transform: scale(1.05);
+    }
 
     .header-meta { text-align: right; }
     .header-meta .h-date { font-size: 13px; color: var(--text-2); font-weight: 500; }
@@ -295,11 +349,16 @@
       border: 1px solid var(--border);
       border-radius: var(--r-2xl);
       overflow: hidden;
-      transition: border-color .25s, box-shadow .25s;
+      transition: border-color .25s, box-shadow .25s, transform .25s;
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 6px 20px -4px var(--shadow);
     }
-    .sc:hover { border-color: var(--border-hover); box-shadow: 0 8px 40px rgba(0,0,0,.35); }
+    .sc:hover { 
+      border-color: var(--border-hover); 
+      box-shadow: 0 12px 30px -4px var(--shadow); 
+      transform: translateY(-2px);
+    }
 
     .sc-header {
       padding: 20px 26px;
@@ -474,6 +533,7 @@
       padding: 22px;
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 6px 20px -4px var(--shadow);
     }
 
     .scard-title {
@@ -1143,6 +1203,19 @@
         <span class="sync-icon" id="sync-icon">💾</span>
         <span id="sync-text">Local</span>
       </div>
+      <button class="theme-toggle" id="theme-toggle" aria-label="Toggle Theme">
+        <svg id="theme-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+      </button>
     </div>
 
     <div class="header-meta">
@@ -2973,11 +3046,40 @@ function renderTimeline() {
 }
 
 /* ═══════════════════════════════════
+   THEME TOGGLE (LIGHT/DARK)
+   ═══════════════════════════════════ */
+const SUN_SVG = `<circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>`;
+const MOON_SVG = `<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>`;
+
+function initTheme() {
+  const toggleBtn = document.getElementById('theme-toggle');
+  const icon = document.getElementById('theme-icon');
+  if (!toggleBtn || !icon) return;
+
+  const currentTheme = localStorage.getItem('theme') || 'dark';
+
+  if (currentTheme === 'light') {
+    document.body.classList.add('light-theme');
+    icon.innerHTML = MOON_SVG;
+  } else {
+    document.body.classList.remove('light-theme');
+    icon.innerHTML = SUN_SVG;
+  }
+
+  toggleBtn.addEventListener('click', () => {
+    const isLight = document.body.classList.toggle('light-theme');
+    localStorage.setItem('theme', isLight ? 'light' : 'dark');
+    icon.innerHTML = isLight ? MOON_SVG : SUN_SVG;
+  });
+}
+
+/* ═══════════════════════════════════
    INIT
 ═══════════════════════════════════ */
 async function init() {
   // 1. Load from localStorage first (instant paint)
   loadFromLocal();
+  initTheme();
 
   // 2. Render everything
   renderPhaseBar();
