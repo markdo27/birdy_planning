@@ -1,4 +1,4 @@
-import { neon } from '@neondatabase/serverless';
+const { neon } = require('@neondatabase/serverless');
 
 /*
   Vercel Serverless Function — /api/tasks
@@ -6,7 +6,7 @@ import { neon } from '@neondatabase/serverless';
   GET  → Returns the current task state from Neon
   POST → Saves new task state to Neon
   
-  Expects DATABASE_URL environment variable set in Vercel.
+  Expects DATABASE_URL (or POSTGRES_URL) environment variable set in Vercel.
 */
 
 // Initialize table on first call (idempotent)
@@ -20,7 +20,7 @@ async function ensureTable(sql) {
   `;
 }
 
-export default async function handler(req, res) {
+module.exports = async function handler(req, res) {
   // CORS headers for local development
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -30,15 +30,22 @@ export default async function handler(req, res) {
     return res.status(200).end();
   }
 
-  // Check for DATABASE_URL
-  if (!process.env.DATABASE_URL) {
+  // Neon Vercel integration may use POSTGRES_URL, DATABASE_URL, or NEON_DATABASE_URL
+  const dbUrl = process.env.DATABASE_URL
+    || process.env.POSTGRES_URL
+    || process.env.NEON_DATABASE_URL;
+
+  if (!dbUrl) {
     return res.status(500).json({
-      error: 'DATABASE_URL not configured',
-      hint: 'Add your Neon connection string as DATABASE_URL in Vercel → Project Settings → Environment Variables'
+      error: 'Database URL not configured',
+      hint: 'Add your Neon connection string as DATABASE_URL in Vercel → Project Settings → Environment Variables',
+      available_env: Object.keys(process.env).filter(k =>
+        k.includes('DATABASE') || k.includes('POSTGRES') || k.includes('NEON') || k.includes('PG')
+      )
     });
   }
 
-  const sql = neon(process.env.DATABASE_URL);
+  const sql = neon(dbUrl);
 
   try {
     // Auto-create table if it doesn't exist
@@ -87,4 +94,4 @@ export default async function handler(req, res) {
     console.error('Database error:', err);
     return res.status(500).json({ error: 'Database error', message: err.message });
   }
-}
+};
