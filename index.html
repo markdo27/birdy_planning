@@ -980,24 +980,44 @@
       gap: 12px;
     }
 
-    .dp-delete-btn {
+    .dp-actions {
+      display: flex;
+      gap: 12px;
       margin-top: auto;
-      padding: 10px 18px;
-      border: 1px solid rgba(244,63,94,.3);
+      flex-shrink: 0;
+    }
+    .dp-btn {
+      flex: 1;
+      padding: 11px 18px;
       border-radius: var(--r-sm);
-      background: rgba(244,63,94,.08);
-      color: var(--rose);
       font-family: var(--fh);
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .06em;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: .07em;
       cursor: pointer;
       transition: all .2s;
       text-transform: uppercase;
+      text-align: center;
+      border: none;
+      outline: none;
+    }
+    .dp-delete-btn {
+      border: 1px solid rgba(244,63,94,.25);
+      background: rgba(244,63,94,.06);
+      color: var(--rose);
     }
     .dp-delete-btn:hover {
-      background: rgba(244,63,94,.18);
+      background: rgba(244,63,94,.15);
       border-color: var(--rose);
+    }
+    .dp-confirm-btn {
+      background: var(--gold);
+      color: #1a0a00;
+      border: 1.5px solid var(--gold);
+    }
+    .dp-confirm-btn:hover {
+      background: #e59c1b;
+      border-color: #e59c1b;
     }
 
     /* ════════════════════════════════════
@@ -1127,27 +1147,6 @@
       </div>
     </div>
 
-    <div class="scard">
-      <div class="scard-title">Product Roadmap</div>
-      <div class="rm-items">
-        <div class="rm-item">
-          <div class="rm-dot" style="background:var(--gold)"></div>
-          <div>
-            <div class="rm-title">V1.0 — Phase 1</div>
-            <div class="rm-sub">Prototype → Demo → External Test → API Connection</div>
-            <div class="rm-tag" style="background:var(--gold-dim);color:var(--gold)">50–70% Functionality</div>
-          </div>
-        </div>
-        <div class="rm-item">
-          <div class="rm-dot" style="background:var(--text-3)"></div>
-          <div>
-            <div class="rm-title" style="color:var(--text-2)">V1.1 — Phase 2</div>
-            <div class="rm-sub">Full UX & UI + Tech Team Integration</div>
-            <div class="rm-tag" style="background:rgba(255,255,255,.05);color:var(--text-3)">100% Functionality</div>
-          </div>
-        </div>
-      </div>
-    </div>
     <div class="scard" id="timeline-card"></div>
   </aside>
 </main>
@@ -1191,7 +1190,10 @@
     <label class="dp-label">Notes</label>
     <textarea class="dp-textarea" id="dp-note" placeholder="Add notes..."></textarea>
   </div>
-  <button class="dp-delete-btn" id="dp-delete">Delete Task</button>
+  <div class="dp-actions">
+    <button class="dp-delete-btn dp-btn" id="dp-delete">Delete Task</button>
+    <button class="dp-confirm-btn dp-btn" id="dp-confirm">Confirm</button>
+  </div>
 </div>
 
 <footer>
@@ -2110,6 +2112,7 @@ function bindDetailPanel() {
   const overlay = document.getElementById('detail-overlay');
   const closeBtn = document.getElementById('dp-close');
   const deleteBtn = document.getElementById('dp-delete');
+  const confirmBtn = document.getElementById('dp-confirm');
 
   overlay.addEventListener('click', closeDetailPanel);
   closeBtn.addEventListener('click', closeDetailPanel);
@@ -2120,9 +2123,51 @@ function bindDetailPanel() {
     }
   });
 
-  // Autosave on input/change
-  const inputs = ['dp-title', 'dp-assignee', 'dp-status', 'dp-start', 'dp-due', 'dp-duration', 'dp-note'];
-  inputs.forEach(id => {
+  confirmBtn.addEventListener('click', () => {
+    savePanelData();
+    closeDetailPanel();
+  });
+
+  // Calculate duration automatically if start date and deadline are selected
+  const startEl = document.getElementById('dp-start');
+  const dueEl = document.getElementById('dp-due');
+  const durEl = document.getElementById('dp-duration');
+
+  const onDateChange = () => {
+    const startVal = startEl.value;
+    const dueVal = dueEl.value;
+    if (startVal && dueVal) {
+      const start = new Date(startVal + 'T00:00:00');
+      const due = new Date(dueVal + 'T00:00:00');
+      const diffTime = due - start;
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      durEl.value = Math.max(0, diffDays);
+    }
+    savePanelData();
+  };
+
+  const onDurationChange = () => {
+    const startVal = startEl.value;
+    const durVal = parseInt(durEl.value);
+    if (startVal && durVal > 0) {
+      const start = new Date(startVal + 'T00:00:00');
+      start.setDate(start.getDate() + durVal - 1);
+      const yyyy = start.getFullYear();
+      const mm = String(start.getMonth() + 1).padStart(2, '0');
+      const dd = String(start.getDate()).padStart(2, '0');
+      dueEl.value = `${yyyy}-${mm}-${dd}`;
+    }
+    savePanelData();
+  };
+
+  startEl.addEventListener('change', onDateChange);
+  dueEl.addEventListener('change', onDateChange);
+  durEl.addEventListener('change', onDurationChange);
+  durEl.addEventListener('input', onDurationChange);
+
+  // Autosave on other inputs
+  const otherInputs = ['dp-title', 'dp-assignee', 'dp-status', 'dp-note'];
+  otherInputs.forEach(id => {
     const el = document.getElementById(id);
     el.addEventListener('change', () => savePanelData());
     el.addEventListener('input', () => savePanelData());
@@ -2150,18 +2195,6 @@ function savePanelData() {
   s.dueDate = dueVal;
   s.duration = isNaN(durVal) ? 0 : durVal;
   s.note = noteVal;
-
-  // Auto-calculate deadline if start date and duration are provided
-  if (s.startDate && s.duration > 0 && !dueVal) {
-    const start = new Date(s.startDate + 'T00:00:00');
-    // duration - 1 because start date is day 1
-    start.setDate(start.getDate() + s.duration - 1);
-    const yyyy = start.getFullYear();
-    const mm = String(start.getMonth() + 1).padStart(2, '0');
-    const dd = String(start.getDate()).padStart(2, '0');
-    s.dueDate = `${yyyy}-${mm}-${dd}`;
-    document.getElementById('dp-due').value = s.dueDate;
-  }
 
   saveST();
   
@@ -2270,6 +2303,18 @@ function renderTimeline() {
     phaseDurations[p.id] = 0;
   });
 
+  // Keep track of milestone specific stats
+  const m1Phases = ['discovery', 'ux', 'ui', 'prototype', 'lock'];
+  const m2Phases = ['development', 'testing', 'launch', 'maintenance'];
+
+  let m1Dur = 0;
+  let m2Dur = 0;
+
+  let m1TotalTasks = 0;
+  let m1DoneTasks = 0;
+  let m2TotalTasks = 0;
+  let m2DoneTasks = 0;
+
   // Accumulate durations from all tasks (default and custom, active)
   SECTIONS.forEach(sec => {
     sec.groups.forEach(g => {
@@ -2280,9 +2325,20 @@ function renderTimeline() {
         totalDuration += dur;
 
         // Track phase-wise duration
-        const phaseId = sec.phase; // sec.phase is e.g. 'discovery', 'ux', 'ui'
+        const phaseId = sec.phase; 
         if (phaseDurations[phaseId] !== undefined) {
           phaseDurations[phaseId] += dur;
+        }
+
+        // Milestone group durations
+        if (m1Phases.includes(phaseId)) {
+          m1Dur += dur;
+          m1TotalTasks++;
+          if (s.checked) m1DoneTasks++;
+        } else if (m2Phases.includes(phaseId)) {
+          m2Dur += dur;
+          m2TotalTasks++;
+          if (s.checked) m2DoneTasks++;
         }
 
         // Track earliest start date
@@ -2296,22 +2352,76 @@ function renderTimeline() {
     });
   });
 
-  let startDateStr = 'Not set';
-  let completionDateStr = 'Not set';
+  // Fallback to today if no start date set yet
+  const baseStart = earliestStart ? new Date(earliestStart) : new Date();
 
-  if (earliestStart) {
-    startDateStr = earliestStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    const completionDate = new Date(earliestStart);
-    if (totalDuration > 0) {
-      completionDate.setDate(completionDate.getDate() + totalDuration - 1);
-      completionDateStr = completionDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    } else {
-      completionDateStr = startDateStr;
-    }
+  // Milestone 1 dates
+  const m1Start = new Date(baseStart);
+  const m1End = new Date(m1Start);
+  if (m1Dur > 0) {
+    m1End.setDate(m1End.getDate() + m1Dur - 1);
   }
 
-  // Build Phase breakdown bars html
+  // Milestone 2 dates
+  const m2Start = new Date(m1End);
+  m2Start.setDate(m2Start.getDate() + 1);
+  const m2End = new Date(m2Start);
+  if (m2Dur > 0) {
+    m2End.setDate(m2End.getDate() + m2Dur - 1);
+  }
+
+  const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+  const startDateStr = earliestStart ? fmt(baseStart) : 'Not set';
+  const completionDateStr = earliestStart ? fmt(m2End) : 'Not set';
+
+  const m1StartStr = earliestStart ? fmt(m1Start) : 'Not set';
+  const m1EndStr = earliestStart ? fmt(m1End) : 'Not set';
+  const m2StartStr = earliestStart ? fmt(m2Start) : 'Not set';
+  const m2EndStr = earliestStart ? fmt(m2End) : 'Not set';
+
+  // Progress percentages
+  const m1Progress = m1TotalTasks ? Math.round((m1DoneTasks / m1TotalTasks) * 100) : 0;
+  const m2Progress = m2TotalTasks ? Math.round((m2DoneTasks / m2TotalTasks) * 100) : 0;
+
+  // Active milestone styling
   const activePhaseIdx = getActivePhaseIdx();
+  const activePhase = PHASES[activePhaseIdx]?.id;
+  const isM1Active = m1Phases.includes(activePhase);
+  const isM2Active = m2Phases.includes(activePhase);
+
+  // Milestone 1 Tag Config
+  let m1TagText = 'Upcoming';
+  let m1TagBg = 'rgba(255,255,255,.05)';
+  let m1TagColor = 'var(--text-3)';
+  if (m1Progress === 100) {
+    m1TagText = 'Complete';
+    m1TagBg = 'rgba(52,211,153,.1)';
+    m1TagColor = 'var(--mint)';
+  } else if (isM1Active || m1Progress > 0) {
+    m1TagText = 'Active';
+    m1TagBg = 'rgba(244,168,35,.1)';
+    m1TagColor = 'var(--gold)';
+  }
+
+  // Milestone 2 Tag Config
+  let m2TagText = 'Upcoming';
+  let m2TagBg = 'rgba(255,255,255,.05)';
+  let m2TagColor = 'var(--text-3)';
+  if (m2Progress === 100) {
+    m2TagText = 'Complete';
+    m2TagBg = 'rgba(52,211,153,.1)';
+    m2TagColor = 'var(--mint)';
+  } else if (isM2Active || m2Progress > 0) {
+    m2TagText = 'Active';
+    m2TagBg = 'rgba(56,189,248,.1)';
+    m2TagColor = 'var(--sky)';
+  }
+
+  const m1Color = m1Progress === 100 ? 'var(--mint)' : 'var(--gold)';
+  const m2Color = m2Progress === 100 ? 'var(--mint)' : 'var(--sky)';
+
+  // Build Phase breakdown bars html
   const breakdownHTML = PHASES.map((p, idx) => {
     const dur = phaseDurations[p.id] || 0;
     if (dur === 0) return ''; // Skip phases with 0 days defined
@@ -2319,13 +2429,10 @@ function renderTimeline() {
     const color = SECTIONS.find(s => s.phase === p.id)?.color || '#5A6B7D';
     const status = getPhaseStatus(idx);
     
-    let pct = 0;
-    // Calculate complete pct for this phase
-    let doneDur = 0;
-    let totalSecIds = PHASE_SECTIONS[p.id] || [];
     let phaseTotalTasks = 0;
     let phaseCompletedTasks = 0;
     
+    let totalSecIds = PHASE_SECTIONS[p.id] || [];
     totalSecIds.forEach(secId => {
       const sec = SECTIONS.find(s => s.id === secId);
       if (!sec) return;
@@ -2368,7 +2475,52 @@ function renderTimeline() {
       <span class="tl-label">Est. Completion</span>
       <span class="tl-value">${completionDateStr}</span>
     </div>
-    ${breakdownHTML ? `<div class="tl-divider"></div>${breakdownHTML}` : ''}
+
+    <div class="tl-divider"></div>
+    <div class="scard-title" style="margin-top: 15px; font-size: 11px; color: var(--text-2);">Realtime Roadmap</div>
+    <div class="rm-items">
+      <!-- Milestone 1 -->
+      <div class="rm-item" style="border-left: 2px solid ${m1Color}; padding-left: 12px; background: rgba(255,255,255,0.015);">
+        <div style="width: 100%">
+          <div class="rm-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>V1.0 — Phase 1</span>
+            <span class="rm-tag" style="background:${m1TagBg}; color:${m1TagColor}; margin-top:0; font-size: 8.5px;">${m1TagText}</span>
+          </div>
+          <div class="rm-sub" style="margin-top:4px;">Prototype & Demo Milestone</div>
+          <div class="rm-sub" style="font-size:9.5px; color:var(--text-3); display:flex; justify-content:space-between; margin-top:6px;">
+            <span>📅 ${m1StartStr} - ${m1EndStr}</span>
+            <span>⏱️ ${m1Dur}d (${m1Progress}%)</span>
+          </div>
+          <div class="tl-phase-bar" style="width:100%; margin-top:8px; height:3px;">
+            <div class="tl-phase-fill" style="width:${m1Progress}%; background:${m1Color}"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Milestone 2 -->
+      <div class="rm-item" style="border-left: 2px solid ${m2Color}; padding-left: 12px; background: rgba(255,255,255,0.015);">
+        <div style="width: 100%">
+          <div class="rm-title" style="display:flex; justify-content:space-between; align-items:center;">
+            <span>V1.1 — Phase 2</span>
+            <span class="rm-tag" style="background:${m2TagBg}; color:${m2TagColor}; margin-top:0; font-size: 8.5px;">${m2TagText}</span>
+          </div>
+          <div class="rm-sub" style="margin-top:4px;">Full Dev & Launch Integration</div>
+          <div class="rm-sub" style="font-size:9.5px; color:var(--text-3); display:flex; justify-content:space-between; margin-top:6px;">
+            <span>📅 ${m2StartStr} - ${m2EndStr}</span>
+            <span>⏱️ ${m2Dur}d (${m2Progress}%)</span>
+          </div>
+          <div class="tl-phase-bar" style="width:100%; margin-top:8px; height:3px;">
+            <div class="tl-phase-fill" style="width:${m2Progress}%; background:${m2Color}"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${breakdownHTML ? `
+      <div class="tl-divider"></div>
+      <div class="scard-title" style="margin-top: 15px; font-size: 11px; color: var(--text-2);">Phase Breakdown</div>
+      ${breakdownHTML}
+    ` : ''}
   `;
 }
 
