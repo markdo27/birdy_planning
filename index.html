@@ -3481,7 +3481,27 @@ function initRole() {
   document.body.classList.add('role-' + currentRole);
 
   select.addEventListener('change', () => {
-    setRole(select.value);
+    const val = select.value;
+    const oldRole = getRole();
+    if (val === oldRole) return;
+
+    if (val === 'admin') {
+      const pass = prompt("Enter Admin Password:");
+      if (pass === 'admin') {
+        setRole('admin');
+      } else {
+        alert("Incorrect Admin Password!");
+        select.value = oldRole;
+      }
+    } else if (val === 'user') {
+      const pass = prompt("Enter User Password:");
+      if (pass === 'user') {
+        setRole('user');
+      } else {
+        alert("Incorrect User Password!");
+        select.value = oldRole;
+      }
+    }
   });
 }
 
