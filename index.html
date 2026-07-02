@@ -1537,15 +1537,15 @@ let   pollTimer = null;
    DATA
 ═══════════════════════════════════ */
 const PHASES = [
-  { id:'discovery',   label:'DISCOVERY',    desc:'Defining product vision, principles, and project scope. Aligning all stakeholders before moving into UX strategy.' },
-  { id:'ux',          label:'UX',           desc:'Building product architecture, information architecture, user flows, and modularisation strategy.' },
-  { id:'ui',          label:'UI',           desc:'Designing screens, responsive layouts, component systems, asset libraries, and UI guidelines.' },
-  { id:'prototype',   label:'PROTOTYPE',    desc:'Creating interactive Figma prototypes for internal review and external demo.' },
-  { id:'lock',        label:'LOCK PROTO',   desc:'Finalizing and locking the prototype — no further design changes before development.' },
-  { id:'development', label:'DEVELOPMENT',  desc:'Building the web-app: frontend, backend, API integrations, payment, and security.' },
-  { id:'testing',     label:'TESTING (QA)', desc:'Quality assurance — functional testing, responsive testing, performance, and security audits.' },
-  { id:'launch',      label:'LAUNCH',       desc:'Deploying to production, DNS setup, monitoring, and go-live checklist.' },
-  { id:'maintenance', label:'MAINTENANCE',  desc:'Post-launch support, bug fixes, performance monitoring, and iterative improvements.' },
+  { id:'discovery',   label:'DISCOVERY',    title:'Discovery',    color:'var(--gold)',    desc:'Defining product vision, principles, and project scope. Aligning all stakeholders before moving into UX strategy.' },
+  { id:'ux',          label:'UX',           title:'UX',           color:'var(--sky)',     desc:'Building product architecture, information architecture, user flows, and modularisation strategy.' },
+  { id:'ui',          label:'UI',           title:'UI',           color:'var(--violet)',  desc:'Designing screens, responsive layouts, component systems, asset libraries, and UI guidelines.' },
+  { id:'prototype',   label:'PROTOTYPE',    title:'Prototype',    color:'var(--rose)',    desc:'Creating interactive Figma prototypes for internal review and external demo.' },
+  { id:'lock',        label:'LOCK PROTO',   title:'Lock Proto',   color:'var(--amber)',   desc:'Finalizing and locking the prototype — no further design changes before development.' },
+  { id:'development', label:'DEVELOPMENT',  title:'Development',  color:'var(--mint)',    desc:'Building the web-app: frontend, backend, API integrations, payment, and security.' },
+  { id:'testing',     label:'TESTING (QA)', title:'Testing (QA)', color:'#818CF8',        desc:'Quality assurance — functional testing, responsive testing, performance, and security audits.' },
+  { id:'launch',      label:'LAUNCH',       title:'Launch',       color:'#F472B6',        desc:'Deploying to production, DNS setup, monitoring, and go-live checklist.' },
+  { id:'maintenance', label:'MAINTENANCE',  title:'Maintenance',  color:'#94A3B8',        desc:'Post-launch support, bug fixes, performance monitoring, and iterative improvements.' },
 ];
 
 /* Phase-to-section mapping: which sections belong to which phase */
@@ -2032,6 +2032,8 @@ function setActivePhase(idx) {
   saveST();
   renderPhaseBar();
   renderPhaseCard();
+  renderMiniBars();
+  refreshSidebar();
 }
 
 function getPhaseStatus(idx) {
@@ -2472,6 +2474,28 @@ function secStats(sec) {
   return { d, t };
 }
 
+function phaseStats(phase) {
+  const secIds = PHASE_SECTIONS[phase.id] || [];
+  let d = 0, t = 0;
+  secIds.forEach(secId => {
+    const sec = SECTIONS.find(s => s.id === secId);
+    if (!sec) return;
+    const st = secStats(sec);
+    d += st.d;
+    t += st.t;
+  });
+  return { d, t };
+}
+
+function getPhasePct(phase, idx) {
+  const stats = phaseStats(phase);
+  if (stats.t === 0) {
+    const activeIdx = getActivePhaseIdx();
+    return idx < activeIdx ? 100 : 0;
+  }
+  return Math.round(stats.d / stats.t * 100);
+}
+
 function allStats() {
   let t=0,d=0,ip=0,bl=0;
   SECTIONS.forEach(sec => sec.groups.forEach(g => {
@@ -2494,12 +2518,20 @@ function refreshSection(id) {
   const pct   = stats.t ? Math.round(stats.d / stats.t * 100) : 0;
   const fill  = document.getElementById(`sbf-${id}`);
   const count = document.querySelector(`#sc-${id} .sc-count`);
-  const mbar  = document.getElementById(`mb-${id}`);
-  const mpct  = document.getElementById(`mp-${id}`);
   if (fill)  fill.style.width  = `${pct}%`;
   if (count) count.textContent = `${stats.d}/${stats.t}`;
-  if (mbar)  mbar.style.width  = `${pct}%`;
-  if (mpct)  mpct.textContent  = `${pct}%`;
+
+  // Update parent phase progress bar in the sidebar
+  const phaseId = sec.phase;
+  const phase = PHASES.find(p => p.id === phaseId);
+  if (phase) {
+    const idx = PHASES.indexOf(phase);
+    const pPct = getPhasePct(phase, idx);
+    const mbar  = document.getElementById(`mb-${phaseId}`);
+    const mpct  = document.getElementById(`mp-${phaseId}`);
+    if (mbar)  mbar.style.width  = `${pPct}%`;
+    if (mpct)  mpct.textContent  = `${pPct}%`;
+  }
 }
 
 /* ═══════════════════════════════════
@@ -2531,17 +2563,16 @@ function initChart() {
 }
 
 function renderMiniBars() {
-  document.getElementById('mini-bars').innerHTML = SECTIONS.map(sec => {
-    const stats = secStats(sec);
-    const pct   = stats.t ? Math.round(stats.d / stats.t * 100) : 0;
+  document.getElementById('mini-bars').innerHTML = PHASES.map((phase, idx) => {
+    const pct = getPhasePct(phase, idx);
     return `
       <div class="mbar-row">
         <div class="mbar-head">
-          <span class="mbar-name">${sec.title}</span>
-          <span class="mbar-pct" id="mp-${sec.id}">${pct}%</span>
+          <span class="mbar-name">${phase.title}</span>
+          <span class="mbar-pct" id="mp-${phase.id}">${pct}%</span>
         </div>
         <div class="mbar-track">
-          <div class="mbar-fill" id="mb-${sec.id}" style="width:${pct}%;background:${sec.color}"></div>
+          <div class="mbar-fill" id="mb-${phase.id}" style="width:${pct}%;background:${phase.color}"></div>
         </div>
       </div>
     `;
@@ -3212,7 +3243,7 @@ function renderTimeline() {
     const dur = phaseDurations[p.id] || 0;
     if (dur === 0) return ''; // Skip phases with 0 days defined
 
-    const color = SECTIONS.find(s => s.phase === p.id)?.color || '#5A6B7D';
+    const color = p.color || SECTIONS.find(s => s.phase === p.id)?.color || '#5A6B7D';
     const status = getPhaseStatus(idx);
     
     let phaseTotalTasks = 0;
